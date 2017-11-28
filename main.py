@@ -17,8 +17,8 @@ root.geometry('250x150+200+100')
 #************************************************************
 filemenu = Menu(menu)
 menu.add_cascade(label="File", menu=filemenu)
-filemenu.add_command(label="New", command=NewFile)
-filemenu.add_command(label="Open...", command=OpenFile)
+filemenu.add_command(label="New", command=lambda: NewFile(root))
+filemenu.add_command(label="Open...", command=lambda: OpenFile(root))
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 
@@ -51,7 +51,7 @@ reviewmenu.add_command(label="View Rasters", command=lambda: View_rasters(root))
 #******** ANALYSIS MENU *************
 analysismenu = Menu(menu)
 menu.add_cascade(label="Analysis", menu=analysismenu)
-analysismenu.add_command(label="Ensemble Detection", command=Ensemble_detection)
+analysismenu.add_command(label="Ensemble Detection", command=lambda: Ensemble_detection(root))
 
 
 

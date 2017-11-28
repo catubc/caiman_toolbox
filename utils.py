@@ -19,10 +19,13 @@ except:
 def View_rasters():
     print "...View rasters ..."
 
+
 def convert_tif_npy(file_name):
     images = tiff.imread(file_name)
     np.save(file_name[:-4], images)
 
+    tiff.imsave(file_name[:-4]+"_500frames.tif", images[:500])
+    np.save(file_name[:-4]+"_500frames.npy", images[:500])
 
 def Ensemble_detection():
     print "...Ensemble detection ..."
@@ -272,7 +275,9 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         cm = com(A, d1, d2)
 
         print Cn.shape
-        images_kalman = np.load(os.path.split(file_name)[0]+'/Registered.npy')
+        print file_name
+        print file_name.replace("_processed.npz",'.npy')
+        images_kalman = np.load(file_name.replace("_processed.npz",'.npy'))
         print images_kalman.shape
         
         traces = np.load(file_name[:-4]+"_traces.npy")
@@ -285,6 +290,8 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     #fig, ax = plt.subplots()
     fig = plt.figure()
+    mng = plt.get_current_fig_manager()
+    mng.resize(*mng.window.maxsize())
     gs = gridspec.GridSpec(2,4)
     #ax1 = plt.subplot(self.gs[0:2,0:2])
     
@@ -298,6 +305,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     nearest_cell=(previous_cell+1)
 
     img_data = images_kalman
+    print img_data.shape
 
     #ax=plt.subplot(1,2,1)
     ax = plt.subplot(gs[0:2,0:2])
@@ -826,7 +834,7 @@ def nb_view_patches(file_name, Yr, A, C, b, f, d1, d2, YrA = None, image_neurons
     print x.shape
     print z.shape
     y_array = z.T
-    t = np.arange(3000)
+    t = np.arange(len(x))
     for k in range(len(y_array)):
         #print x[k]
         #print z[k]

@@ -22,6 +22,7 @@ def NewFile(root):
 
     print e1.text()
 
+
 def OpenFile(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
@@ -80,14 +81,7 @@ def Caiman_online(root):
     root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
     root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered.tif'
 
-    t = Text(root, wrap='word', height = 30, width=80)
-    t.grid(column=5, row=1, columnspan = 2, sticky='NSWE', padx=5, pady=5)
-    #sys.stdout = StdoutRedirector(t)
-    
-    #t = Text(root)
-    #t.grid(row=5,column=1)
-
-    #******** Select filename:
+    #******** Filename Selector
     def button0():
         print "...selecting file..."
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
@@ -104,19 +98,18 @@ def Caiman_online(root):
     e1.grid(row=0, column=1)
     e1.place(x=120,width=800)
     
+    #********** PARAMETER TEXT BOXES **********
+    t = Text(root, wrap='word', height = 30, width=80)
+    t.grid(column=5, row=1, columnspan = 2, sticky='NSWE', padx=5, pady=5)
+    
     def button1(l):
-        print root.data.file_name
-        #for k, ele in enumerate(root.winfo_children()):
-        #    if k>0: ele.destroy()
+        #print root.data.file_name
         l.config(foreground='red')
         root.update()
-        #searchB = Label(main, text = "Search", bg = "#fecc14", fg = "Black", activebackground = "Red", highlightbackground="Black")
-        #b1.configure(bg = "#234")
 
         import io, subprocess
         #p = os.popen("python -u ../CaImAn/demo_OnACID.py "+root.data.file_name)
         proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID.py", root.data.file_name], stdout=subprocess.PIPE)
-
         
         while True:
           line = proc.stdout.readline()
@@ -134,20 +127,19 @@ def Caiman_online(root):
     b1 = Button(root, text="demo_OnACID", foreground='blue', command=lambda: button1(l))
     b1.grid(row=1, column=0)
 
-
-        
+    
     
 def Caiman_offline(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "...caiman offline..."
+    print "...caiman offline...(not implemented)"
 
 
 def Image_registration(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
-    print "...image registration ..."
+    print "...image registration ...(not implemented)"
 
 
 class emptyObject():
@@ -162,7 +154,7 @@ def Review_ROIs(root):
     
     root.data = emptyObject()
     root.data.root_dir = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
-    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/G2M5_C1V1_GCaMP6s_20170511_000.npz'
+    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered_processed.npz'
 
 
     def load_data():
