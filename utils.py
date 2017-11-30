@@ -25,7 +25,6 @@ def run_foopsi(root):
     print len(traces)
     
     #lengths = [3000,3500,3500,3000,3000,3000]
-
     #import imp
     #cm = imp.load_source('caiman', '/home/cat/code/CaImAn/')
     sys.path.append('/home/cat/code/CaImAn/')
@@ -47,7 +46,9 @@ def run_foopsi(root):
             c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace, p=1)
             temp_c.extend(c)
             temp_raster.extend(sp)    
-        else:                                   #This runs deconvolution chunkwise and setsbaseline based on mean of the input traces
+        
+        #This runs deconvolution chunkwise and setsbaseline based on mean of the input traces - to account for differences in light intensity across frames...
+        else:                                   
             for l in range(len(lengths)):
                 print np.sum(lengths[0:l]), np.sum(lengths[0:l+1])
                 c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace[np.sum(lengths[0:l]):np.sum(lengths[0:l+1])]+abs(np.mean(trace)),p=2)
@@ -75,21 +76,31 @@ def run_foopsi(root):
     np.savez(file_name[:-4]+"_deconvolved_data", original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters_15threshold=rasters_array[0], rasters_20threshold=rasters_array[1],rasters_25threshold=rasters_array[2])
 
     import scipy.io as sio
-    sio.savemat(file_name[:-4]+'_processed.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters_15threshold':rasters_array[0], 'rasters_20threshold':rasters_array[1],'rasters_25threshold':rasters_array[2]})
+    sio.savemat(file_name[:-4]+'_deconvolved_data.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters_15threshold':rasters_array[0], 'rasters_20threshold':rasters_array[1],'rasters_25threshold':rasters_array[2]})
 
-def View_rasters():
+def view_rasters(root):
     print "...View rasters ..."
     
+    
+    root.data.file_name
+    
+    data = np.load(root.data.file_name)
+    rasters = data['rasters_25threshold']
+    print rasters.shape
 
-
-
-
-
-    plt.plot(rasters_array[0][10])
+    ax=plt.subplot(1,1,1)
+    for k in range(len(rasters)):
+        print len(rasters[k])
+        indexes = np.where(rasters[k]>0)[0]
+        plt.scatter(indexes, [k]*len(indexes))
+    
+    plt.xlim(-1,len(rasters[0])+1)
+    plt.ylim(-1,len(rasters)+1)
+    plt.xlabel("Frames", fontsize=25)
+    plt.ylabel("Neuron ID", fontsize=25)
+    ax.tick_params(axis='both', which='both', labelsize=25)
     plt.show()
             
-        
-
 
 def convert_tif_npy(file_name):
     images = tiff.imread(file_name)
@@ -275,6 +286,13 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, dis
     return coordinates
     
 
+
+def PointsInCircum(r,n=100):
+    import math
+    from math import pi
+    return [(math.cos(2*pi/n*x)*r,math.sin(2*pi/n*x)*r) for x in xrange(0,n+1)]   
+
+#************************* GUI TO CORRECT ROIS; USING EXISTING CAIMAN CODE *******************
 def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, display_numbers=True, max_number=None,
                   cmap=None, swap_dim=False, colors='grey', vmin=None, vmax=None, **kwargs):
     """Plots contour of spatial components against a background image and returns their coordinates
@@ -316,7 +334,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
      Coor: list of coordinates with center of mass, contour plot coordinates and bounding box for each component
     """
     
-    global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, images_kalman, color_selected, img_data, ax, ax2, ax3
+    global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, images_kalman, color_selected, img_data, ax, ax2, ax3, add_cell_flag
 
 
     if issparse(A):
@@ -373,6 +391,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     ylim_max=500
     ylim_min=-200
     previous_cell=0
+    add_cell_flag=False
     nearest_cell=(previous_cell+1)
 
     img_data = images_kalman
@@ -503,7 +522,6 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     #***********************************************************************************
     #**************************** RESET FUNCTION  **************************************
     #***********************************************************************************
-        
     def reset_function():
         ''' Reset function called by various buttons to redraw everything
         '''
@@ -526,8 +544,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidths=l_width, colors='blue',alpha=0.9)
 
         redraw_traces()
-        
-       
+
 
     #***********************************************************************************
     #**************************** SELECT NEURON BUTTON *********************************
@@ -535,7 +552,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     def callback(event):
         ''' This function finds the nearest neuron to the mouse click location
         '''
-        global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
+        global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3, add_cell_flag
         
         if event.inaxes is not None:
             print "...button press: ", event.ydata, event.xdata
@@ -546,24 +563,121 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
             print " click inside image box "
                 
+            if add_cell_flag:
+                print "... adding cell...", add_cell_flag
+                add_cell_flag=False
+
+                
+                #***********Clear previous 2 cells *******
+                ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidth=l_width, colors=colors)
+                ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidth=l_width, colors=colors)
+
+                print " # cells: ", len(y_array)
             
-            #***********Clear previous 2 cells *******
-            ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidth=l_width, colors=colors)
-            ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidth=l_width, colors=colors)
+                circle_size=5
+                #Define N points on a circle centred at mouse click; shift circle to location
+                points = np.vstack(PointsInCircum(circle_size,n=20))
+                points = points + [int(event.ydata), int(event.xdata)]
 
-            previous_cell = nearest_cell
-            nearest_cell = find_nearest_euclidean(cm, [event.ydata, event.xdata])
-            print "nearest_cell: ", nearest_cell
+                area_coords = []
+                for i in range(len(points)):
+                    area_coords.append((points[i][0], points[i][1]))
+                    
+                #Plot recent area
+                temp_coords = np.array(area_coords)
+                ax.plot(temp_coords[:,1],temp_coords[:,0],color='springgreen',linewidth=2)
+                
+                fig.canvas.draw()
+                
+                #*******Need to compute values and add them to arrays
+                #Add centres
+                cm_temp = [int(event.ydata), int(event.xdata)]
+                cm = np.append(cm,[cm_temp], axis=0)                    #*** APpend centre of mass
+                
+                #Add grids
+                x_array = np.append(x_array,[x_array[-1]],axis=0)       #*** Append ygrid
+                y_array = np.append(y_array,[y_array[-1]],axis=0)       #*** Append xgrid
+                print len(x_array[0]), len(y_array[0])
 
-            #Redraw new cells
-            ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidths=l_width, colors='red',alpha=0.9)
-            ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidths=l_width, colors='blue',alpha=0.9)
+                #Add thrshold
+                thr_array = np.append(thr_array,[thr_array[-1]], axis=0)
 
-            redraw_traces()
+                #Add Bmatrix values:
+                #this requires finding points inside drawn ROI
+                from matplotlib.path import Path
+                vertixes_path = Path(temp_coords)       #Define vertices from circle
+                
+                all_points = []
+                for i in range(len(Bmat_array[0])):
+                    for j in range(len(Bmat_array[0][0])):
+                        all_points.append([i,j])
+                print "len allpoints:" , len(all_points)
+                        
+                mask = vertixes_path.contains_points(all_points)
+                mask = np.reshape(mask,(len(Bmat_array[0]),len(Bmat_array[0][0])))
+                
+                print Bmat_array.shape, mask.shape
+                Bmat_array = np.append(Bmat_array, [mask], axis=0)       #*** Append Bmat (mask)
+                
+                #fig41 = plt.subplots()     #Check ROI drawn.
+                #plt.imshow(mask)
+                #plt.show()
+                
+                #Add traces:
+                #filename = root.data.file_name #'/media/cat/4TB/in_vivo/rafa/alejandro/20171013/cropped_Registered_20171013to20171024_processed.npz'
+                print file_name
+                image_stack_1D = np.load(file_name)['Yr'].T
+                
+                mask_1d = np.ravel(mask.T)
+                temp_trace = []
+                for k in range(len(image_stack_1D)):
+                    print "...frame: ", k
+                    temp_trace.append(np.sum(image_stack_1D[k]*mask_1d))
+                
+                baseline = np.mean(temp_trace)
+                temp_trace_dff = (temp_trace-baseline)/baseline*1E2
+                traces = np.append(traces.T,[temp_trace_dff], axis=0).T     #*** Append traces
+
+                if False:
+                    temp_trace = np.array(temp_trace)
+                    fig41 = plt.subplots()
+                    plt.plot(temp_trace)
+                    
+                    plt.plot(temp_trace_dff)
+                    plt.show()
+                    
+                    print traces.shape
+                    print temp_trace.shape
+                    print traces.shape
+                                
+                
+                reset_function()
+
+                #ax.contour(y_array, Bmat, [thr], linewidth=l_width, colors=colors)
+                
+                return
+            
+            else: 
+                print "... selecting cells..."
+                
+                #***********Clear previous 2 cells *******
+                ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidth=l_width, colors=colors)
+                ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidth=l_width, colors=colors)
+
+                previous_cell = nearest_cell
+                nearest_cell = find_nearest_euclidean(cm, [event.ydata, event.xdata])
+                print "nearest_cell: ", nearest_cell
+
+                #Redraw new cells
+                ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidths=l_width, colors='red',alpha=0.9)
+                ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidths=l_width, colors='blue',alpha=0.9)
+
+                redraw_traces()
 
 
     fig.canvas.callbacks.connect('button_press_event', callback)
-    
+
+
     #***********************************************************************************
     #****************************** UPDATE CALCIUM MOVIE BUTTON ***********************
     #***********************************************************************************
@@ -594,6 +708,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     frame.on_changed(update)
 
+
     #***********************************************************************************
     #**************************** RESET NEURON BUTTON **********************************
     #***********************************************************************************
@@ -611,6 +726,8 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     button.on_clicked(reset_button)
 
+    
+    
     #***********************************************************************************
     #****************************** COLORS SELECTOR **************************************
     #***********************************************************************************
@@ -651,6 +768,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     button5.on_clicked(next_neuron)
 
+
     #***********************************************************************************
     #****************************** PREVIOUS NEURON BUTTON *********************************
     #***********************************************************************************
@@ -673,6 +791,20 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     button6.on_clicked(previous_neuron)
     
 
+    #***********************************************************************************
+    #**************************** ADD NEURON BUTTON **********************************
+    #***********************************************************************************
+    add_cell_ax = plt.axes([0.025, 0.445, 0.03, 0.03])
+    button8 = Button(add_cell_ax, 'Add\nNeuron', color=axcolor, hovercolor='0.975')
+    def add_cell(event):
+        print "...reseting..."
+        global add_cell_flag
+        
+        add_cell_flag = True
+        
+    button8.on_clicked(add_cell)
+    
+    
     #***********************************************************************************
     #**************************** DELETE NEURON BUTTON *********************************
     #**********************************************************************************
@@ -713,6 +845,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         np.savez(file_name[:-4]+"_saved_progress",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
 
     button3.on_clicked(save_progress)
+
 
     #***********************************************************************************
     #**************************** LOAD PROGRESS BUTTON *********************************
