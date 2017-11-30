@@ -10,7 +10,14 @@ root.config(menu=menu)
 root.minsize(width=1200, height=500)
 root.title("CaImAn GUI and Analysis Toolbox")
 root.geometry('250x150+200+100')
+#root.iconbitmap('/home/cat/code/caiman_toolbox/caiman.ico')
+#root.wm_iconbitmap('/home/cat/code/caiman_toolbox/caiman.ico')
 
+#imgicon = PhotoImage(file='/home/cat/Downloads/Caiman_logo_FI.png')
+#root.tk.call('wm', 'iconphoto', root._w, imgicon)  
+#menu.master.iconbitmap('/home/cat/code/caiman_toolbox/caiman.ico')
+logo = PhotoImage(file="/home/cat/Downloads/caiman.gif")
+w1 = Label(root, image=logo).pack(side='top')
 
 #************************************************************
 #************************ FILE MENU *************************
@@ -45,7 +52,7 @@ reviewmenu = Menu(menu)
 menu.add_cascade(label="Review", menu=reviewmenu)
 reviewmenu.add_command(label="Review ROIs", command=lambda: Review_ROIs(root))
 reviewmenu.add_separator()
-reviewmenu.add_command(label="View Rasters", command=lambda: View_rasters(root))
+reviewmenu.add_command(label="Review Spikes", command=lambda: Review_spikes(root))
 
 
 #******** ANALYSIS MENU *************

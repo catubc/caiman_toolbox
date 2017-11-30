@@ -99,28 +99,31 @@ def Caiman_online(root):
     e1.place(x=120,width=800)
     
     #********** PARAMETER TEXT BOXES **********
-    t = Text(root, wrap='word', height = 30, width=80)
-    t.grid(column=5, row=1, columnspan = 2, sticky='NSWE', padx=5, pady=5)
+    tkinter_window = True       #Redirect command line outputs to text box in tkinter;
+    if tkinter_window:
+        t = Text(root, wrap='word', height = 30, width=80)
+        t.grid(column=5, row=1, columnspan = 2, sticky='NSWE', padx=5, pady=5)
     
     def button1(l):
         #print root.data.file_name
         l.config(foreground='red')
         root.update()
 
-        import io, subprocess
-        #p = os.popen("python -u ../CaImAn/demo_OnACID.py "+root.data.file_name)
-        proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID.py", root.data.file_name], stdout=subprocess.PIPE)
-        
-        while True:
-          line = proc.stdout.readline()
-          if line != '':
-            t.insert(END, '%s\n' % line.rstrip())
-            t.see(END)
-            t.update_idletasks()
-            sys.stdout.flush()
-          else:
-            break
-       
+        if tkinter_window:
+            import io, subprocess
+            proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID.py", root.data.file_name], stdout=subprocess.PIPE)
+
+            while True:
+              line = proc.stdout.readline()
+              if line != '':
+                t.insert(END, '%s\n' % line.rstrip())
+                t.see(END)
+                t.update_idletasks()
+                sys.stdout.flush()
+              else:
+                break
+        else:
+            p = os.system("python -u ../CaImAn/demo_OnACID.py "+root.data.file_name)
         
     #******** Run review ROIs function
     l = Label(root, textvariable='green', fg = 'red')
@@ -145,7 +148,61 @@ def Image_registration(root):
 class emptyObject():
     def __init__(self):
         pass
-       
+
+def Review_spikes(root):
+    print "...Review spikes ..."
+    for k, ele in enumerate(root.winfo_children()):
+        if k>0: ele.destroy()
+    
+    root.data = emptyObject()
+    root.data.root_dir = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
+    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered_processed_saved_progress.npz'
+
+    def button0():
+        print "...selecting file..."
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+
+        #root.data.npz = np.load(file_name)
+
+        #load_data()
+
+    #******** Select filename:
+    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0,column=0)
+
+    e1 = Entry(root)        #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, root.data.file_name)
+    e1.grid(row=0, column=1)
+    e1.place(x=120,width=800)
+
+
+    #********* Run foopsi
+    def button1():
+        print "...running foopsi..."
+
+        run_foopsi(root)
+        
+    #******** Select filename:
+    b1 = Button(root, text="Run Foopsi", command=button1)
+    b1.grid(row=1,column=0)
+    
+           
+    #********* View rasters
+    def button2():
+        print "...viewing rasters..."
+
+        view_rasters(root)
+        
+    #******** Select filename:
+    b2 = Button(root, text="View rasters", command=button2)
+    b2.grid(row=2,column=0)
+            
+
+
+
+
+
         
 def Review_ROIs(root):
     print "...Review ROIs ..."

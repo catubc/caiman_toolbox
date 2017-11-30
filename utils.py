@@ -5,7 +5,7 @@ from scipy.sparse import issparse, spdiags, coo_matrix, csc_matrix
 from past.utils import old_div
 from scipy.ndimage.measurements import center_of_mass
 import tifffile as tiff
-import os
+import os, sys
 import matplotlib.gridspec as gridspec
 
 try:
@@ -16,8 +16,79 @@ except:
     print("Bokeh could not be loaded. Either it is not installed or you are not running within a notebook")
 
 
+def run_foopsi(root):
+    
+    file_name= root.data.file_name
+    data = np.load(file_name)
+    traces = data['traces'].T
+    
+    print len(traces)
+    
+    #lengths = [3000,3500,3500,3000,3000,3000]
+
+    #import imp
+    #cm = imp.load_source('caiman', '/home/cat/code/CaImAn/')
+    sys.path.append('/home/cat/code/CaImAn/')
+
+    import caiman as cm
+    from caiman.source_extraction.cnmf.deconvolution import constrained_foopsi
+    
+    c_array = []
+    raster_array = []
+    for n, trace in enumerate(traces):
+    #for n, trace in enumerate(traces[:10]):
+        print " ... cell: ", n
+        #trace+=20
+        temp_c = []
+        temp_raster = []
+        
+        if True:                               
+            #c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace,method = 'cvxpy', p=1)
+            c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace, p=1)
+            temp_c.extend(c)
+            temp_raster.extend(sp)    
+        else:                                   #This runs deconvolution chunkwise and setsbaseline based on mean of the input traces
+            for l in range(len(lengths)):
+                print np.sum(lengths[0:l]), np.sum(lengths[0:l+1])
+                c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace[np.sum(lengths[0:l]):np.sum(lengths[0:l+1])]+abs(np.mean(trace)),p=2)
+                temp_c.extend(c)
+                temp_raster.extend(sp)
+
+        c_array.append(temp_c)
+        raster_array.append(temp_raster)
+
+    raster_array = np.array(raster_array)
+    c_array=np.array(c_array)
+    #Compute 
+    print "...extracting binary rasters..."
+    rasters_array = []
+    thresholds = [1.5,2.0,2.5]
+    for threshold in thresholds:
+        rasters = np.zeros(raster_array.shape,dtype=np.float32)
+        for k in range(len(rasters)):
+            indexes = np.where(raster_array[k]>threshold)[0]
+            rasters[k][indexes]=1
+            #plt.scatter(indexes,np.array([1]*len(indexes))+k)
+        #plt.show()
+        rasters_array.append(rasters)
+
+    np.savez(file_name[:-4]+"_deconvolved_data", original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters_15threshold=rasters_array[0], rasters_20threshold=rasters_array[1],rasters_25threshold=rasters_array[2])
+
+    import scipy.io as sio
+    sio.savemat(file_name[:-4]+'_processed.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters_15threshold':rasters_array[0], 'rasters_20threshold':rasters_array[1],'rasters_25threshold':rasters_array[2]})
+
 def View_rasters():
     print "...View rasters ..."
+    
+
+
+
+
+
+    plt.plot(rasters_array[0][10])
+    plt.show()
+            
+        
 
 
 def convert_tif_npy(file_name):
@@ -443,7 +514,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         
         #******* Redraw movie panel
         ax.cla()
-        img1 = ax.imshow(img_data[0], cmap=color_selected)
+        img1 = ax.imshow(img_data[0], cmap=color_selected, interpolation='sinc')
         for c in range(len(x_array)):
             ax.contour(y_array[c], x_array[c], Bmat_array[c], [thr_array[c]], colors=colors)
             ax.text(cm[c, 1], cm[c, 0], str(c), color=colors_white)
@@ -665,6 +736,42 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     button4.on_clicked(load_progress)
 
+
+    #**********************************************************************************
+    #**************************** EXPORT DATA *****************************************
+    #**********************************************************************************
+    export_ax = plt.axes([0.025, 0.145, 0.04, 0.03])
+    button7 = Button(export_ax, 'Export\nData', color=axcolor, hovercolor='0.975')
+    
+    def export_data(event):
+        global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
+
+        print "...saving data in .txt "
+        
+        np.savetxt(file_name[:-4]+"_traces.txt", traces)
+        np.savetxt(file_name[:-4]+"_centres.txt", cm)
+        
+        rasters = []
+        raster_array = np.zeros(traces.shape, dtype=np.float32)
+        print raster_array.shape
+        #fig2 = plt.figure()
+        for t in range(len(traces[0])):
+            derivative = traces[:,t][1:]-traces[:,t][:-1]
+            der_std = np.std(derivative)
+            spikes = np.where(derivative>(der_std*3))[0]
+            rasters.append(spikes)
+            print len(spikes)
+            print spikes
+            raster_array[:,t][spikes]=1
+            #plt.scatter(spikes, [t]*len(spikes))
+        
+        #plt.show()
+        
+        import scipy.io as sio
+        sio.savemat(file_name[:-4]+'_processed.mat', {'traces':traces, 'centres':cm, 'raster_array':np.array(raster_array).T})
+        np.savetxt(file_name[:-4]+"_rasters.txt", raster_array)
+
+    button7.on_clicked(export_data)
 
     plt.show()
 
