@@ -76,7 +76,7 @@ def Caiman_online(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    root.minsize(width=800, height=500)
+    root.minsize(width=800, height=600)
     root.data = emptyObject()
     root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
     root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered.tif'
@@ -85,27 +85,134 @@ def Caiman_online(root):
     def button0():
         print "...selecting file..."
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
-        e1.delete(0, END)
-        e1.insert(0, root.data.file_name)
+        e.delete(0, END)
+        e.insert(0, root.data.file_name)
         root.title(os.path.split(root.data.file_name)[1])
         
     b0 = Button(root, text="Filename", anchor="w", command=button0) #Label(root, text="Filename: ").grid(row=0)
     b0.grid(row=0,column=0)
 
-    e1 = Entry(root, justify='left')       #text entry for the filename
-    e1.delete(0, END)
-    e1.insert(0, root.data.file_name)
-    e1.grid(row=0, column=1)
-    e1.place(x=120,width=800)
+    e = Entry(root, justify='left')       #text entry for the filename
+    e.delete(0, END)
+    e.insert(0, root.data.file_name)
+    e.place(x=120,width=600)
+
+
+    #******** DEMO_ONACID PARAMETERS ******************
+    #Param 1
+    x_offset = 10; y_offset=50
+    l1 = Label(root, text='Merge Threshold')
+    l1.place(x=x_offset,y=y_offset, height=30,width=100)
     
-    #********** PARAMETER TEXT BOXES **********
+    e1 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, 0.8)
+    e1.place(x=x_offset+103,y=y_offset+5)
+    x_offset+=140
+    
+    #Param 2
+    l2 = Label(root, text='Autoregress order')
+    l2.place(x=x_offset,y=y_offset, height=30,width=130)
+    
+    e2 = Entry(root, justify='left', width=3)       #text entry for the filename
+    e2.delete(0, END)
+    e2.insert(0, 1)
+    e2.place(x=x_offset+120,y=y_offset+5)
+    x_offset+=150
+
+    #Param 3
+    l3 = Label(root, text='Initial Batch')
+    l3.place(x=x_offset,y=y_offset, height=30,width=100)
+    
+    e3 = Entry(root, justify='left', width=5)       #text entry for the filename
+    e3.delete(0, END)
+    e3.insert(0, 20000)
+    e3.place(x=x_offset+88,y=y_offset+5)
+    x_offset+=145
+
+    #Param 4
+    l4 = Label(root, text='rf')
+    l4.place(x=x_offset,y=y_offset, height=30,width=25)
+    
+    e4 = Entry(root, justify='left', width=3)       #text entry for the filename
+    e4.delete(0, END)
+    e4.insert(0, 16)
+    e4.place(x=x_offset+22,y=y_offset+5)
+    x_offset+=60
+    
+    #Param 5
+    l5 = Label(root, text='stride')
+    l5.place(x=x_offset,y=y_offset, height=30,width=40)
+    
+    e5 = Entry(root, justify='left', width=3)       #text entry for the filename
+    e5.delete(0, END)
+    e5.insert(0, 3)
+    e5.place(x=x_offset+38,y=y_offset+5)
+    x_offset+=100
+
+    #******************************* NEW LINE ************************
+    x_offset=10; y_offset=80
+
+    l6 = Label(root, text='K')
+    l6.place(x=x_offset,y=y_offset, height=30,width=15)
+    
+    e6 = Entry(root, justify='left', width=3)       #text entry for the filename
+    e6.delete(0, END)
+    e6.insert(0, 4)
+    e6.place(x=x_offset+15,y=y_offset+5)
+    x_offset+=60
+    
+    #Param 2
+    l7 = Label(root, text='gSig')
+    l7.place(x=x_offset,y=y_offset, height=30,width=40)
+    
+    e7 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e7.delete(0, END)
+    e7.insert(0, '6, 6')
+    e7.place(x=x_offset+40,y=y_offset+5)
+    x_offset+=80
+
+    #Param 3
+    l8 = Label(root, text='rval_thr')
+    l8.place(x=x_offset,y=y_offset, height=30,width=80)
+    
+    e8 = Entry(root, justify='left', width=5)       #text entry for the filename
+    e8.delete(0, END)
+    e8.insert(0, 0.95)
+    e8.place(x=x_offset+67,y=y_offset+5)
+    x_offset+=125
+
+    #Param 4
+    l9 = Label(root, text='thr_fitness_delta')
+    l9.place(x=x_offset,y=y_offset, height=30,width=110)
+    
+    e9 = Entry(root, justify='left', width=3)       #text entry for the filename
+    e9.delete(0, END)
+    e9.insert(0, -50)
+    e9.place(x=x_offset+108,y=y_offset+5)
+    x_offset+=160
+    
+    #Param 5
+    l10 = Label(root, text='thr_fitness_raw')
+    l10.place(x=x_offset,y=y_offset, height=30,width=110)
+    
+    e10 = Entry(root, justify='left', width=3)       #text entry for the filename
+    e10.delete(0, END)
+    e10.insert(0, -50)
+    e10.place(x=x_offset+106,y=y_offset+5)
+   
+    
+    
+    
+    
+    #********** COMMAND LINE OUTPUT BOX **********
     tkinter_window = True       #Redirect command line outputs to text box in tkinter;
     if tkinter_window:
-        t = Text(root, wrap='word', height = 30, width=80)
-        t.grid(column=5, row=1, columnspan = 2, sticky='NSWE', padx=5, pady=5)
-    
+        t = Text(root, wrap='word', height = 20, width=100)
+        t.place(x=10, y=250, in_=root)
+
+    #********* DEMO_ONACID BUTTON **********************
     def button1(l):
-        #print root.data.file_name
         l.config(foreground='red')
         root.update()
 
@@ -125,10 +232,9 @@ def Caiman_online(root):
         else:
             p = os.system("python -u ../CaImAn/demo_OnACID.py "+root.data.file_name)
         
-    #******** Run review ROIs function
     l = Label(root, textvariable='green', fg = 'red')
     b1 = Button(root, text="demo_OnACID", foreground='blue', command=lambda: button1(l))
-    b1.grid(row=1, column=0)
+    b1.place(x=10, y=150, in_=root)
 
     
     
@@ -173,16 +279,15 @@ def Review_spikes(root):
     e1 = Entry(root)        #text entry for the filename
     e1.delete(0, END)
     e1.insert(0, root.data.file_name)
-    e1.grid(row=0, column=1)
     e1.place(x=120,width=800)
 
 
     #********* Run foopsi
     def button1():
         print "...running foopsi..."
-
         run_foopsi(root)
         
+
     #******** Select filename:
     b1 = Button(root, text="Run Foopsi", command=button1)
     b1.grid(row=1,column=0)
@@ -191,8 +296,8 @@ def Review_spikes(root):
     #********* View rasters
     def button2():
         print "...viewing rasters..."
-
         view_rasters(root)
+
         
     #******** Select filename:
     b2 = Button(root, text="View rasters", command=button2)
