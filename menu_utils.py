@@ -284,51 +284,6 @@ class emptyObject():
     def __init__(self):
         pass
 
-def Review_spikes(root):
-    print "...Review spikes ..."
-    for k, ele in enumerate(root.winfo_children()):
-        if k>0: ele.destroy()
-
-    root.title("Review Spikes")
-    root.data = emptyObject()
-    root.data.file_name = ''
-
-    #******** Select ROI filename
-    def button0():
-        print "...selecting ROI file..."
-        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="ROIs.npz", filetypes=(("ROI", "*ROIs.npz"),("All Files", "*.*") ))
-        e1.delete(0, END)
-        e1.insert(0, root.data.file_name)
-        
-        #load_data()
-
-    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
-    b0.grid(row=0,column=0)
-
-    e1 = Entry(root)        #text entry for the filename
-    e1.delete(0, END)
-    e1.insert(0, root.data.file_name)
-    e1.place(x=120,width=800)
-
-
-    #********* Run foopsi
-    def button1():
-        print "...running foopsi..."
-        run_foopsi(root)
-
-    b1 = Button(root, text="Run Foopsi", command=button1)
-    b1.place(x=0,y=30)
-    
-
-    #********* View rasters
-    def button2():
-        root.deconvolved_filename = root.data.file_name[:-4]+"_deconvolved_data.npz"
-        print "...viewing rasters..."
-        view_rasters(root)
-
-    b2 = Button(root, text="View rasters", command=button2)
-    b2.place(x=0,y=150)
-            
         
 def Review_ROIs(root):
     print "...Review ROIs ..."
@@ -412,10 +367,59 @@ def Review_ROIs(root):
     b3.place(x=0, y=110)
 
 
-    #load_data()
-    #b2 = Button(root, text="correct ROIs ", command=button2)
-    #b2.pack()
+
+def Review_spikes(root):
+    print "...Review spikes ..."
+    for k, ele in enumerate(root.winfo_children()):
+        if k>0: ele.destroy()
+
+    root.title("Review Spikes")
+    root.data = emptyObject()
+    root.data.file_name = ''
+
+    #******** Select ROI filename
+    def button0():
+        print "...selecting ROI file..."
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="ROIs.npz", filetypes=(("ROI", "*ROIs.npz"),("All Files", "*.*") ))
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        
+        #load_data()
+
+    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0,column=0)
+
+    e1 = Entry(root)        #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, root.data.file_name)
+    e1.place(x=120,width=800)
 
 
-    #np.save(file_name[:-4]+"_yarray", Yr)
+    #********* Run foopsi
+    #Param 1
+    x_offset = 0; y_offset=50
+    l1 = Label(root, text='Foopsi Threshold')
+    l1.place(x=x_offset,y=y_offset, height=30,width=110)
+    
+    e2 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e2.delete(0, END)
+    e2.insert(0, 2.0)
+    e2.place(x=x_offset+125,y=y_offset+5)
+    
+    def button1():
+        print "...running foopsi..."
+        root.data.foopsi_threshold = e2.get()
+        run_foopsi(root)
 
+    b1 = Button(root, text="Run Foopsi", command=button1)
+    b1.place(x=0,y=80)
+    
+
+    #********* View rasters
+    def button2():
+        print "...viewing rasters..."
+        view_rasters(root)
+
+    b2 = Button(root, text="View rasters", command=button2)
+    b2.place(x=0,y=150)
+            

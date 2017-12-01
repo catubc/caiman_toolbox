@@ -66,29 +66,25 @@ def run_foopsi(root):
     #Compute 
     print "...extracting binary rasters..."
     rasters_array = []
-    thresholds = [1.5,2.0,2.5]
+    thresholds = np.float32([root.data.foopsi_threshold])
     for threshold in thresholds:
+        print "... generating rasters for threshold: ", threshold
         rasters = np.zeros(raster_array.shape,dtype=np.float32)
         for k in range(len(rasters)):
             indexes = np.where(raster_array[k]>threshold)[0]
             rasters[k][indexes]=1
-            #plt.scatter(indexes,np.array([1]*len(indexes))+k)
-        #plt.show()
         rasters_array.append(rasters)
 
-    np.savez(file_name[:-4]+"_deconvolved_data", original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters_15threshold=rasters_array[0], \
-    rasters_20threshold=rasters_array[1],rasters_25threshold=rasters_array[2], \
-    centres=centres)
+    np.savez(file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold), original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters=rasters_array[0],centres=centres)
 
-    import scipy.io as sio
-    sio.savemat(file_name[:-4]+'_deconvolved_data.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters_15threshold':rasters_array[0], \
-    'rasters_20threshold':rasters_array[1],'rasters_25threshold':rasters_array[2], 'centres':centres})
+    sio.savemat(file_name[:-4]+'_deconvolved_data_thr'+str(root.data.foopsi_threshold)+'.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters':rasters_array[0],'centres':centres})
 
 def view_rasters(root):
     print "...View rasters ..."
     
+    root.deconvolved_filename = root.data.file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold)+".npz"
     data = np.load(root.deconvolved_filename)
-    rasters = data['rasters_20threshold']
+    rasters = data['rasters']
     print rasters.shape
 
     ax=plt.subplot(1,1,1)
@@ -102,6 +98,7 @@ def view_rasters(root):
     plt.xlabel("Frames", fontsize=25)
     plt.ylabel("Neuron ID", fontsize=25)
     ax.tick_params(axis='both', which='both', labelsize=25)
+    plt.title("Foopsi threshold: "+str(root.data.foopsi_threshold), fontsize=25)
     plt.show()
             
 
@@ -882,16 +879,15 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     def export_data(event):
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
 
-        print "...saving data in .txt "
-        
+        #print "...saving data in .txt "
         
         print "...saving progress "
-        np.savez(file_name[:-4]+"_processed_ROIs",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
-        sio.savemat(file_name[:-4]+'_processed_ROIs.mat', {'y_array':y_array, 'x_array':x_array, 'Bmat_array':Bmat_array, 'thr_array':thr_array, 'traces':traces, 'centres':cm})
+        np.savez(file_name[:-4]+"_ROIs",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
+        sio.savemat(file_name[:-4]+'_ROIs.mat', {'y_array':y_array, 'x_array':x_array, 'Bmat_array':Bmat_array, 'thr_array':thr_array, 'traces':traces, 'centres':cm})
         
         #np.savetxt(file_name[:-4]+"_traces.txt", traces)
         #np.savetxt(file_name[:-4]+"_centres.txt", cm)
-        
+
         #rasters = []
         #raster_array = np.zeros(traces.shape, dtype=np.float32)
         #print raster_array.shape
@@ -1136,76 +1132,8 @@ def get_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, disp
             
         
     #"""
-    #A = csc_matrix(A)
-    #d, nr = np.shape(A)
-    ##if we are on a 3D video
-    #if len(dims) == 3:
-        #d1, d2, d3 = dims
-        #x, y = np.mgrid[0:d2:1, 0:d3:1]
-    #else:
-        #d1, d2 = dims
-        #x, y = np.mgrid[0:d1:1, 0:d2:1]
-
-    #coordinates = []
-
-    ##get the center of mass of neurons( patches )
-    #print A.shape
-    #print dims
-    ##cm = np.asarray([center_of_mass(a.toarray().reshape(dims, order='F')) for a in A.T])
-    #cm = []
-    #for a in A.T:
-        #temp = a.toarray(); print temp.shape
-        #temp = temp.reshape((62500,1), order='F')
-        #cm.append(center_of_mass(temp))
-    #cm = np.asarray(cm)
-    #print cm.shape
+    #Cat cutoff code above this...
     
-    ##for each patches
-    #for i in range(nr):
-        #pars = dict()
-        ##we compute the cumulative sum of the energy of the Ath component that has been ordered from least to highest
-        #patch_data = A.data[A.indptr[i]:A.indptr[i + 1]]
-        #indx = np.argsort(patch_data)[::-1]
-        #cumEn = np.cumsum(patch_data[indx]**2)
-
-        ##we work with normalized values
-        #cumEn /= cumEn[-1]
-        #Bvec = np.ones(d)
-
-        ##we put it in a similar matrix
-        #Bvec[A.indices[A.indptr[i]:A.indptr[i + 1]][indx]] = cumEn
-        #Bmat = np.reshape(Bvec, dims, order='F')
-        #pars['coordinates'] = []
-        ## for each dimensions we draw the contour
-        #for B in (Bmat if len(dims) == 3 else [Bmat]):
-            ##plotting the contour usgin matplotlib undocumented function around the thr threshold
-            #nlist = mpl._cntr.Cntr(y, x, B).trace(thr)
-
-            ##vertices will be the first half of the list
-            #vertices = nlist[:len(nlist) // 2]
-            ## this fix is necessary for having disjoint figures and borders plotted correctly
-            #v = np.atleast_2d([np.nan, np.nan])
-            #for k, vtx in enumerate(vertices):
-                #num_close_coords = np.sum(np.isclose(vtx[0, :], vtx[-1, :]))
-                #if num_close_coords < 2:
-                    #if num_close_coords == 0:
-                        ## case angle
-                        #newpt = np.round(old_div(vtx[-1, :], [d2, d1])) * [d2, d1]
-                        #vtx = np.concatenate((vtx, newpt[np.newaxis, :]), axis=0)
-
-                    #else:
-                        ## case one is border
-                        #vtx = np.concatenate((vtx, vtx[0, np.newaxis]), axis=0)
-                #v = np.concatenate((v, vtx, np.atleast_2d([np.nan, np.nan])), axis=0)
-
-            #pars['coordinates'] = v if len(dims) == 2 else (pars['coordinates'] + [v])
-        #pars['CoM'] = np.squeeze(cm[i, :])
-        #pars['neuron_id'] = i + 1
-        #coordinates.append(pars)
-    #return coordinates
-
-    #****************************
-
     if issparse(A):
         A = np.array(A.todense())
     else:
