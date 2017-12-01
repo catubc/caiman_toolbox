@@ -109,8 +109,8 @@ def convert_tif_npy(file_name):
     tiff.imsave(file_name[:-4]+"_500frames.tif", images[:500])
     np.save(file_name[:-4]+"_500frames.npy", images[:500])
 
-def Ensemble_detection():
-    print "...Ensemble detection ..."
+def Ensemble_detection(root):
+    print "...Ensemble detection ... (not implemented)"
 
 def About():
     tkMessageBox.showinfo("About", "CaImAn Ver 1.0 ...")

@@ -29,9 +29,9 @@ print "Location of data folder: ", root.data_folder
 #************************ FILE MENU *************************
 #************************************************************
 filemenu = Menu(menu)
-menu.add_cascade(label="File", menu=filemenu)
-filemenu.add_command(label="New", command=lambda: NewFile(root))
-filemenu.add_command(label="Open...", command=lambda: OpenFile(root))
+menu.add_cascade(label="Options", menu=filemenu)
+#filemenu.add_command(label="New", command=lambda: NewFile(root))
+filemenu.add_command(label="Defaults", command=lambda: Defaults(root))
 filemenu.add_separator()
 filemenu.add_command(label="Exit", command=root.quit)
 
@@ -65,10 +65,6 @@ reviewmenu.add_command(label="Review Spikes", command=lambda: Review_spikes(root
 analysismenu = Menu(menu)
 menu.add_cascade(label="Analysis", menu=analysismenu)
 analysismenu.add_command(label="Ensemble Detection", command=lambda: Ensemble_detection(root))
-
-
-
-#******** EXPORT DATA MENU ************
 
 
 mainloop()

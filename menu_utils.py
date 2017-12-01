@@ -23,16 +23,46 @@ def NewFile(root):
     print e1.text()
 
 
-def OpenFile(root):
+def Defaults(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "Open File!... (not implemented)"
-    return
-    root.minsize(width=800, height=500)
-    name = tkFileDialog.askopenfilename(initialdir='/media/cat/')
+    #******** Select CaImAn folder
+    def button00():
+        print "...selecting caiman folder location..."
+        root.caiman_folder = tkFileDialog.askdirectory(initialdir=root.caiman_folder, title="Select CaImAn Root Directory")
+        print "Changing caiman_folder to: ", root.caiman_folder
+        np.savetxt('caiman_folder_location.txt',[root.caiman_folder], fmt="%s") 
+        e0.delete(0, END)
+        e0.insert(0, root.caiman_folder)
+        
+    b00 = Button(root, text="Set CaImAn Folder", anchor="w", command=button00) #Label(root, text="Filename: ").grid(row=0)
+    b00.place(x=0,y=0)
+
+    e0 = Entry(root, justify='left')       #text entry for the filename
+    e0.delete(0, END)
+    e0.insert(0, root.caiman_folder)
+    e0.place(x=150,y=0, width=600)
 
 
+    #******** Filename Selector
+    def button0():
+        print "...selecting data folder..."
+        root.data_folder = tkFileDialog.askdirectory(initialdir=root.data_folder, title="Select data directory")
+        np.savetxt('data_folder_location.txt',[root.data_folder], fmt="%s") 
+        e.delete(0, END)
+        e.insert(0, root.data_folder)
+        #root.title(root.data_folder)
+        
+    b0 = Button(root, text="Default data dir:", anchor="w", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.place(x=0, y=30)
+
+    e = Entry(root, justify='left')       #text entry for the filename
+    e.delete(0, END)
+    e.insert(0, root.data_folder)
+    e.place(x=150,y=30, width=600)
+    
+    
 def Tif_convert(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
@@ -41,8 +71,8 @@ def Tif_convert(root):
 
     root.minsize(width=800, height=500)
     root.data = emptyObject()
-    root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
-    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered.tif'
+    #root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
+    #root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered.tif'
 
     #******** Select filename:
     def button0():
@@ -59,7 +89,7 @@ def Tif_convert(root):
     
     e1 = Entry(root, justify='left')       #text entry for the filename
     e1.delete(0, END)
-    e1.insert(0, root.data.file_name)
+    e1.insert(0, '')
     e1.grid(row=0, column=1)
     e1.place(x=120,width=800)
    
@@ -80,31 +110,12 @@ def Caiman_online(root):
     
     #print '...text************'
 
-    root.minsize(width=800, height=600)
+    root.minsize(width=1000, height=600)
     root.data = emptyObject()
     #root.data_folder root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
     root.data.file_name = ''
 
     #root.caiman_folder = np.loadtxt('caiman_folder_location.txt',dtype=str)
-
-
-    #******** Select CaImAn folder
-    def button00():
-        print "...selecting caiman folder location..."
-        root.caiman_folder = tkFileDialog.askdirectory(initialdir=root.caiman_folder, title="Select CaImAn Root Directory")
-        print "Changing caiman_folder to: ", root.caiman_folder
-        np.savetxt('caiman_folder_location.txt',[root.caiman_folder], fmt="%s") 
-        e0.delete(0, END)
-        e0.insert(0, root.caiman_folder)
-        
-    b00 = Button(root, text="CaImAn Folder", anchor="w", command=button00) #Label(root, text="Filename: ").grid(row=0)
-    b00.place(x=0,y=0)
-
-    e0 = Entry(root, justify='left')       #text entry for the filename
-    e0.delete(0, END)
-    e0.insert(0, root.caiman_folder)
-    e0.place(x=120,y=0, width=600)
-
 
     #******** Filename Selector
     def button0():
@@ -119,17 +130,24 @@ def Caiman_online(root):
         root.title(os.path.split(root.data.file_name)[1])
         
     b0 = Button(root, text="Filename:", anchor="w", command=button0) #Label(root, text="Filename: ").grid(row=0)
-    b0.place(x=0, y=30)
+    b0.place(x=0, y=0)
 
     e = Entry(root, justify='left')       #text entry for the filename
     e.delete(0, END)
     e.insert(0, root.data.file_name)
-    e.place(x=120,y=30, width=600)
-
-
-    #******** DEMO_ONACID PARAMETERS ******************
+    e.place(x=120,y=0, width=600)
+    
+    x_offset=0; y_offset=30
+   
+   
+    #******** CNMF Parameters ******************
+    #
+    x_offset = 0; y_offset=55
+    l0 = Label(root, text='CNMF Initialization Parameters',  fg="red", justify='left')
+    l0.place(x=x_offset, y=y_offset, height=30, width=190)
+    
     #Param 1
-    x_offset = 10; y_offset=75
+    x_offset=10; y_offset=+80
     l1 = Label(root, text='Merge Threshold')
     l1.place(x=x_offset,y=y_offset, height=30,width=100)
     
@@ -139,15 +157,15 @@ def Caiman_online(root):
     e1.place(x=x_offset+103,y=y_offset+5)
     x_offset+=140
     
-    #Param 2
-    l2 = Label(root, text='Autoregress order')
-    l2.place(x=x_offset,y=y_offset, height=30,width=130)
+    ##Param 2
+    #l2 = Label(root, text='Autoregress order')
+    #l2.place(x=x_offset,y=y_offset, height=30,width=130)
     
-    e2 = Entry(root, justify='left', width=3)       #text entry for the filename
-    e2.delete(0, END)
-    e2.insert(0, 1)
-    e2.place(x=x_offset+120,y=y_offset+5)
-    x_offset+=150
+    #e2 = Entry(root, justify='left', width=3)       #text entry for the filename
+    #e2.delete(0, END)
+    #e2.insert(0, 1)
+    #e2.place(x=x_offset+120,y=y_offset+5)
+    #x_offset+=150
 
     #Param 3
     l3 = Label(root, text='Initial Batch')
@@ -160,14 +178,14 @@ def Caiman_online(root):
     x_offset+=145
 
     #Param 4
-    l4 = Label(root, text='rf')
-    l4.place(x=x_offset,y=y_offset, height=30,width=25)
+    l4 = Label(root, text='patch_size')
+    l4.place(x=x_offset,y=y_offset, height=30,width=100)
     
     e4 = Entry(root, justify='left', width=3)       #text entry for the filename
     e4.delete(0, END)
-    e4.insert(0, 16)
-    e4.place(x=x_offset+22,y=y_offset+5)
-    x_offset+=60
+    e4.insert(0, 32)
+    e4.place(x=x_offset+85,y=y_offset+5)
+    x_offset+=160
     
     #Param 5
     l5 = Label(root, text='stride')
@@ -178,10 +196,8 @@ def Caiman_online(root):
     e5.insert(0, 3)
     e5.place(x=x_offset+38,y=y_offset+5)
     x_offset+=100
-
-    #******************************* NEW LINE ************************
-    x_offset=10; y_offset=y_offset+30
-
+    
+    #Param 6
     l6 = Label(root, text='K')
     l6.place(x=x_offset,y=y_offset, height=30,width=15)
     
@@ -189,48 +205,166 @@ def Caiman_online(root):
     e6.delete(0, END)
     e6.insert(0, 4)
     e6.place(x=x_offset+15,y=y_offset+5)
-    x_offset+=60
     
+    
+    #***************************************************
+    #Recording Defaults
+    #NEW LINE 
+    x_offset = 0; y_offset+=50
+    print x_offset, y_offset
+    l_1 = Label(root, text='Recording Defaults',  fg="blue", justify='left')
+    l_1.place(x=x_offset, y=y_offset, height=30, width=120)
+    
+    y_offset+=25    
     #Param 2
-    l7 = Label(root, text='gSig')
-    l7.place(x=x_offset,y=y_offset, height=30,width=40)
+    l7 = Label(root, text='frame_rate (hz)')
+    l7.place(x=x_offset,y=y_offset, height=30,width=110)
     
+    x_offset+=105
     e7 = Entry(root, justify='left', width=4)       #text entry for the filename
     e7.delete(0, END)
-    e7.insert(0, '6, 6')
-    e7.place(x=x_offset+40,y=y_offset+5)
-    x_offset+=80
+    e7.insert(0, 10)
+    e7.place(x=x_offset,y=y_offset+5)
 
     #Param 3
-    l8 = Label(root, text='rval_thr')
-    l8.place(x=x_offset,y=y_offset, height=30,width=80)
+    x_offset+=30
+    l8 = Label(root, text='decay_time (s)')
+    l8.place(x=x_offset,y=y_offset, height=30,width=110)
     
-    e8 = Entry(root, justify='left', width=5)       #text entry for the filename
+    x_offset+=100
+    e8 = Entry(root, justify='left', width=4)       #text entry for the filename
     e8.delete(0, END)
-    e8.insert(0, 0.95)
-    e8.place(x=x_offset+67,y=y_offset+5)
-    x_offset+=125
+    e8.insert(0, 0.5)
+    e8.place(x=x_offset,y=y_offset+5)
 
-    #Param 4
-    l9 = Label(root, text='thr_fitness_delta')
-    l9.place(x=x_offset,y=y_offset, height=30,width=110)
+    #Param 3
+    x_offset+=50
+    l9 = Label(root, text='neuron (pixels)')
+    l9.place(x=x_offset,y=y_offset, height=30,width=100)
     
-    e9 = Entry(root, justify='left', width=3)       #text entry for the filename
+    x_offset+=100
+    e9 = Entry(root, justify='left', width=4)       #text entry for the filename
     e9.delete(0, END)
-    e9.insert(0, -50)
-    e9.place(x=x_offset+108,y=y_offset+5)
-    x_offset+=160
+    e9.insert(0, '6, 6')
+    e9.place(x=x_offset,y=y_offset+5)
+
+
+    #Param 3
+    x_offset+=40
+    l10 = Label(root, text='order AR dynamics')
+    l10.place(x=x_offset,y=y_offset, height=30,width=145)
     
-    #Param 5
-    l10 = Label(root, text='thr_fitness_raw')
-    l10.place(x=x_offset,y=y_offset, height=30,width=110)
-    
+    x_offset+=135
     e10 = Entry(root, justify='left', width=3)       #text entry for the filename
     e10.delete(0, END)
-    e10.insert(0, -50)
-    e10.place(x=x_offset+106,y=y_offset+5)
+    e10.insert(0, 1)
+    e10.place(x=x_offset,y=y_offset+5)
+
+
+    #Param 
+    x_offset+=40
+    l11 = Label(root, text='min_SNR')
+    l11.place(x=x_offset,y=y_offset, height=30,width=65)
+    
+    x_offset+=62
+    e11 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e11.delete(0, END)
+    e11.insert(0, 3.5)
+    e11.place(x=x_offset,y=y_offset+5)
+
+
+    #Param 
+    x_offset+=40
+    l12 = Label(root, text='rval_thr')
+    l12.place(x=x_offset,y=y_offset, height=30,width=65)
+    
+    x_offset+=60
+    e12 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e12.delete(0, END)
+    e12.insert(0, 0.90)
+    e12.place(x=x_offset,y=y_offset+5)
+
+
+    #Param 
+    x_offset+=40
+    l13 = Label(root, text='# bkgr comp')
+    l13.place(x=x_offset,y=y_offset, height=30,width=105)
+    
+    x_offset+=95
+    e13 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e13.delete(0, END)
+    e13.insert(0, 3)
+    e13.place(x=x_offset,y=y_offset+5)
+
+    
+    #***************************************************
+    #Temporary Initalization Defaults
+    #NEW LINE 
+    x_offset = 0; y_offset+=50
+    print x_offset, y_offset
+    l_1 = Label(root, text='Initialization Defaults',  fg="green", justify='left')
+    l_1.place(x=x_offset, y=y_offset, height=30, width=140)
+    
+    y_offset+=30
+    #Param 
+    x_offset=0; x_width=120
+    l14 = Label(root, text='# updated shapes')
+    l14.place(x=x_offset,y=y_offset, height=30,width=x_width)
+    
+    x_offset+=x_width
+    e14 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e14.delete(0, END)
+    e14.insert(0, 'inf')
+    e14.place(x=x_offset,y=y_offset+5)
+
+    #Param 
+    x_offset+=45; x_width=125
+    l15 = Label(root, text='# expected shapes')
+    l15.place(x=x_offset,y=y_offset, height=30,width=x_width)
+    
+    x_offset+=x_width
+    e15 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e15.delete(0, END)
+    e15.insert(0, 250)
+    e15.place(x=x_offset,y=y_offset+5)
+
+    #Param 
+    x_offset+=45; x_width=80
+    l16 = Label(root, text='# timesteps')
+    l16.place(x=x_offset,y=y_offset, height=30,width=x_width)
+    
+    x_offset+=x_width
+    e16 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e16.delete(0, END)
+    N_samples = np.ceil(float(e7.get())*float(e8.get()))
+    e16.insert(0, N_samples)
+    e16.place(x=x_offset,y=y_offset+5)
+
+    #Param 
+    from scipy.special import log_ndtr
+    x_offset+=45; x_width=140
+    l17 = Label(root, text='exceptionality thresh')
+    l17.place(x=x_offset,y=y_offset, height=30,width=x_width)
+    
+    x_offset+=x_width
+    e17 = Entry(root, justify='left', width=5)       #text entry for the filename
+    e17.delete(0, END)
+    e17.insert(0, log_ndtr(-float(e11.get()))*N_samples)
+    e17.place(x=x_offset,y=y_offset+5)
+
+    #Param 
+    x_offset+=55; x_width=105
+    l18 = Label(root, text='total len of file')
+    l18.place(x=x_offset,y=y_offset, height=30,width=x_width)
+    
+    x_offset+=x_width
+    e18 = Entry(root, justify='left', width=5)       #text entry for the filename
+    e18.delete(0, END)
+    e18.insert(0, 'all')
+    e18.place(x=x_offset,y=y_offset+5)
+
+
    
-        
     #********** COMMAND LINE OUTPUT BOX **********
     tkinter_window = False       #Redirect command line outputs to text box in tkinter;
     if tkinter_window:
@@ -242,10 +376,31 @@ def Caiman_online(root):
         l.config(foreground='red')
         root.update()
 
+        #Save existing config file
+        np.savez(str(root.data.file_name)[:-4]+"_runtime_params", \
+            merge_thr=e1.get(),     #merge threshold
+            initibatch = e3.get(),     #Initial batch
+            patch_size=e4.get(),     #patch size
+            stride=e5.get(),     #stride
+            K=e6.get(),     #K
+            frame_rate=e7.get(),      #frame_rate
+            decay_time=e8.get(),     #decay_time
+            neuron_size=e9.get(),     #neuron size pixesl
+            AR_dynamics=e10.get(),    #AR dynamics order
+            min_SNR=e11.get(),  #min_SNR
+            rval_threshold = e12.get(),    # rval_threshold
+            no_bkgr_components=e13.get(),    # #bkground componenets
+            no_updated_shapes=e14.get(),    # #udpated shapes
+            no_expected_shapes=e15.get(),    # #expected shapes
+            no_timesteps=e16.get(),    # #timesteps
+            exceptionality_threshold=e17.get(),    # exceptionatliy threshold
+            total_len_file=e18.get()     # total len of file
+            )
+                
         if tkinter_window:
             import io, subprocess
             #proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID.py", root.data.file_name], stdout=subprocess.PIPE)
-            proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID_2.py", root.data.file_name], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(["python", "-u", str(root.caiman_folder)+"/demo_OnACID_2.py", root.data.file_name], stdout=subprocess.PIPE)
 
             while True:
               line = proc.stdout.readline()
@@ -259,13 +414,14 @@ def Caiman_online(root):
         else:
             print "python -u "
             print root.caiman_folder
-            p = os.system("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+root.data.file_name)
+            #p = os.system("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+root.data.file_name)
+            print "python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+str(root.data.file_name)
+            p = os.system("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+str(root.data.file_name))
         
     l = Label(root, textvariable='green', fg = 'red')
     b1 = Button(root, text="demo_OnACID", foreground='blue', command=lambda: button1(l))
-    b1.place(x=10, y=150, in_=root)
+    b1.place(x=0, y=y_offset+50, in_=root)
 
-    
     
 def Caiman_offline(root):
     for k, ele in enumerate(root.winfo_children()):
@@ -351,7 +507,7 @@ def Review_ROIs(root):
     e1.delete(0, END)
     e1.insert(0, root.data.file_name)
     e1.grid(row=0, column=1)
-    e1.place(x=220,width=800)
+    e1.place(x=120,width=800)
 
 
     #******** Run review ROIs function
