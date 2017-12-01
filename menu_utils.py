@@ -47,7 +47,9 @@ def Tif_convert(root):
     #******** Select filename:
     def button0():
         print "...selecting file..."
-        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
+
         e1.delete(0, END)
         e1.insert(0, root.data.file_name)
         #root.title(os.path.split(root.data.file_name)[1])
@@ -75,32 +77,59 @@ def Tif_convert(root):
 def Caiman_online(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
+    
+    #print '...text************'
 
     root.minsize(width=800, height=600)
     root.data = emptyObject()
-    root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
-    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered.tif'
+    #root.data_folder root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
+    root.data.file_name = ''
+
+    #root.caiman_folder = np.loadtxt('caiman_folder_location.txt',dtype=str)
+
+
+    #******** Select CaImAn folder
+    def button00():
+        print "...selecting caiman folder location..."
+        root.caiman_folder = tkFileDialog.askdirectory(initialdir=root.caiman_folder, title="Select CaImAn Root Directory")
+        print "Changing caiman_folder to: ", root.caiman_folder
+        np.savetxt('caiman_folder_location.txt',[root.caiman_folder], fmt="%s") 
+        e0.delete(0, END)
+        e0.insert(0, root.caiman_folder)
+        
+    b00 = Button(root, text="CaImAn Folder", anchor="w", command=button00) #Label(root, text="Filename: ").grid(row=0)
+    b00.place(x=0,y=0)
+
+    e0 = Entry(root, justify='left')       #text entry for the filename
+    e0.delete(0, END)
+    e0.insert(0, root.caiman_folder)
+    e0.place(x=120,y=0, width=600)
+
 
     #******** Filename Selector
     def button0():
         print "...selecting file..."
-        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("npy", "*.npy"),("All Files", "*.*") ))
+
+        print root.data.file_name
+        root.data_folder = os.path.split(root.data.file_name)[0]
+        np.savetxt('data_folder_location.txt',[root.data_folder], fmt="%s") 
         e.delete(0, END)
         e.insert(0, root.data.file_name)
         root.title(os.path.split(root.data.file_name)[1])
         
-    b0 = Button(root, text="Filename", anchor="w", command=button0) #Label(root, text="Filename: ").grid(row=0)
-    b0.grid(row=0,column=0)
+    b0 = Button(root, text="Filename:", anchor="w", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.place(x=0, y=30)
 
     e = Entry(root, justify='left')       #text entry for the filename
     e.delete(0, END)
     e.insert(0, root.data.file_name)
-    e.place(x=120,width=600)
+    e.place(x=120,y=30, width=600)
 
 
     #******** DEMO_ONACID PARAMETERS ******************
     #Param 1
-    x_offset = 10; y_offset=50
+    x_offset = 10; y_offset=75
     l1 = Label(root, text='Merge Threshold')
     l1.place(x=x_offset,y=y_offset, height=30,width=100)
     
@@ -151,7 +180,7 @@ def Caiman_online(root):
     x_offset+=100
 
     #******************************* NEW LINE ************************
-    x_offset=10; y_offset=80
+    x_offset=10; y_offset=y_offset+30
 
     l6 = Label(root, text='K')
     l6.place(x=x_offset,y=y_offset, height=30,width=15)
@@ -201,12 +230,9 @@ def Caiman_online(root):
     e10.insert(0, -50)
     e10.place(x=x_offset+106,y=y_offset+5)
    
-    
-    
-    
-    
+        
     #********** COMMAND LINE OUTPUT BOX **********
-    tkinter_window = True       #Redirect command line outputs to text box in tkinter;
+    tkinter_window = False       #Redirect command line outputs to text box in tkinter;
     if tkinter_window:
         t = Text(root, wrap='word', height = 20, width=100)
         t.place(x=10, y=250, in_=root)
@@ -218,7 +244,8 @@ def Caiman_online(root):
 
         if tkinter_window:
             import io, subprocess
-            proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID.py", root.data.file_name], stdout=subprocess.PIPE)
+            #proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID.py", root.data.file_name], stdout=subprocess.PIPE)
+            proc = subprocess.Popen(["python", "-u", "/home/cat/code/CaImAn/demo_OnACID_2.py", root.data.file_name], stdout=subprocess.PIPE)
 
             while True:
               line = proc.stdout.readline()
@@ -230,7 +257,9 @@ def Caiman_online(root):
               else:
                 break
         else:
-            p = os.system("python -u ../CaImAn/demo_OnACID.py "+root.data.file_name)
+            print "python -u "
+            print root.caiman_folder
+            p = os.system("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+root.data.file_name)
         
     l = Label(root, textvariable='green', fg = 'red')
     b1 = Button(root, text="demo_OnACID", foreground='blue', command=lambda: button1(l))
@@ -259,20 +288,20 @@ def Review_spikes(root):
     print "...Review spikes ..."
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
-    
+
+    root.title("Review Spikes")
     root.data = emptyObject()
-    root.data.root_dir = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
-    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered_processed_saved_progress.npz'
+    root.data.file_name = ''
 
+    #******** Select ROI filename
     def button0():
-        print "...selecting file..."
-        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
-
-        #root.data.npz = np.load(file_name)
-
+        print "...selecting ROI file..."
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="ROIs.npz", filetypes=(("ROI", "*ROIs.npz"),("All Files", "*.*") ))
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        
         #load_data()
 
-    #******** Select filename:
     b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
     b0.grid(row=0,column=0)
 
@@ -286,28 +315,20 @@ def Review_spikes(root):
     def button1():
         print "...running foopsi..."
         run_foopsi(root)
-        
 
-    #******** Select filename:
     b1 = Button(root, text="Run Foopsi", command=button1)
-    b1.grid(row=1,column=0)
+    b1.place(x=0,y=30)
     
-           
+
     #********* View rasters
     def button2():
+        root.deconvolved_filename = root.data.file_name[:-4]+"_deconvolved_data.npz"
         print "...viewing rasters..."
         view_rasters(root)
 
-        
-    #******** Select filename:
     b2 = Button(root, text="View rasters", command=button2)
-    b2.grid(row=2,column=0)
+    b2.place(x=0,y=150)
             
-
-
-
-
-
         
 def Review_ROIs(root):
     print "...Review ROIs ..."
@@ -315,9 +336,8 @@ def Review_ROIs(root):
         if k>0: ele.destroy()
     
     root.data = emptyObject()
-    root.data.root_dir = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
-    root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered_processed.npz'
-
+    root.data.file_name = ''
+    root.title("Review and Cleanup ROIs")
 
     def load_data():
         data_in = np.load(root.data.file_name)
@@ -346,7 +366,8 @@ def Review_ROIs(root):
 
     def button0():
         print "...selecting file..."
-        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="*processed.npz", filetypes=(("npz", "*processed.npz"),("All Files", "*.*") ))
+
         e1.delete(0, END)
         e1.insert(0, root.data.file_name)
         root.title(os.path.split(root.data.file_name)[1])
@@ -375,24 +396,23 @@ def Review_ROIs(root):
     e1.delete(0, END)
     e1.insert(0, root.data.file_name)
     e1.grid(row=0, column=1)
-    e1.place(x=120,width=800)
+    e1.place(x=220,width=800)
 
 
     #******** Run review ROIs function
-    b1 = Button(root, text="Review ROIs", command=button1)
-    b1.grid(row=1, column=0)
-
-
-    #******** Run review ROIs function
-    b2 = Button(root, text="Plot contours", command=button2)
-    b2.grid(row=2, column=0)
+    b1 = Button(root, text="Review ROIs", command=button1, justify='left')
+    b1.place(x=0, y=50)
 
     #******** Run review ROIs function
-    b3 = Button(root, text="View patches", command=button3)
-    b3.grid(row=3, column=0)
+    b2 = Button(root, text="Plot contours", command=button2, justify='left')
+    b2.place(x=0, y=80)
+
+    #******** Run review ROIs function
+    b3 = Button(root, text="View patches", command=button3, justify='left')
+    b3.place(x=0, y=110)
 
 
-    load_data()
+    #load_data()
     #b2 = Button(root, text="correct ROIs ", command=button2)
     #b2.pack()
 

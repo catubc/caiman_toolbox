@@ -7,6 +7,7 @@ from scipy.ndimage.measurements import center_of_mass
 import tifffile as tiff
 import os, sys
 import matplotlib.gridspec as gridspec
+import scipy.io as sio
 
 try:
     import bokeh
@@ -21,6 +22,8 @@ def run_foopsi(root):
     file_name= root.data.file_name
     data = np.load(file_name)
     traces = data['traces'].T
+    centres = data['cm']
+    print centres[0]
     
     print len(traces)
     
@@ -73,19 +76,19 @@ def run_foopsi(root):
         #plt.show()
         rasters_array.append(rasters)
 
-    np.savez(file_name[:-4]+"_deconvolved_data", original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters_15threshold=rasters_array[0], rasters_20threshold=rasters_array[1],rasters_25threshold=rasters_array[2])
+    np.savez(file_name[:-4]+"_deconvolved_data", original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters_15threshold=rasters_array[0], \
+    rasters_20threshold=rasters_array[1],rasters_25threshold=rasters_array[2], \
+    centres=centres)
 
     import scipy.io as sio
-    sio.savemat(file_name[:-4]+'_deconvolved_data.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters_15threshold':rasters_array[0], 'rasters_20threshold':rasters_array[1],'rasters_25threshold':rasters_array[2]})
+    sio.savemat(file_name[:-4]+'_deconvolved_data.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters_15threshold':rasters_array[0], \
+    'rasters_20threshold':rasters_array[1],'rasters_25threshold':rasters_array[2], 'centres':centres})
 
 def view_rasters(root):
     print "...View rasters ..."
     
-    
-    root.data.file_name
-    
-    data = np.load(root.data.file_name)
-    rasters = data['rasters_25threshold']
+    data = np.load(root.deconvolved_filename)
+    rasters = data['rasters_20threshold']
     print rasters.shape
 
     ax=plt.subplot(1,1,1)
@@ -881,28 +884,33 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
         print "...saving data in .txt "
         
-        np.savetxt(file_name[:-4]+"_traces.txt", traces)
-        np.savetxt(file_name[:-4]+"_centres.txt", cm)
         
-        rasters = []
-        raster_array = np.zeros(traces.shape, dtype=np.float32)
-        print raster_array.shape
-        #fig2 = plt.figure()
-        for t in range(len(traces[0])):
-            derivative = traces[:,t][1:]-traces[:,t][:-1]
-            der_std = np.std(derivative)
-            spikes = np.where(derivative>(der_std*3))[0]
-            rasters.append(spikes)
-            print len(spikes)
-            print spikes
-            raster_array[:,t][spikes]=1
-            #plt.scatter(spikes, [t]*len(spikes))
+        print "...saving progress "
+        np.savez(file_name[:-4]+"_processed_ROIs",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
+        sio.savemat(file_name[:-4]+'_processed_ROIs.mat', {'y_array':y_array, 'x_array':x_array, 'Bmat_array':Bmat_array, 'thr_array':thr_array, 'traces':traces, 'centres':cm})
         
-        #plt.show()
+        #np.savetxt(file_name[:-4]+"_traces.txt", traces)
+        #np.savetxt(file_name[:-4]+"_centres.txt", cm)
         
-        import scipy.io as sio
-        sio.savemat(file_name[:-4]+'_processed.mat', {'traces':traces, 'centres':cm, 'raster_array':np.array(raster_array).T})
-        np.savetxt(file_name[:-4]+"_rasters.txt", raster_array)
+        #rasters = []
+        #raster_array = np.zeros(traces.shape, dtype=np.float32)
+        #print raster_array.shape
+        ##fig2 = plt.figure()
+        #for t in range(len(traces[0])):
+            #derivative = traces[:,t][1:]-traces[:,t][:-1]
+            #der_std = np.std(derivative)
+            #spikes = np.where(derivative>(der_std*3))[0]
+            #rasters.append(spikes)
+            #print len(spikes)
+            #print spikes
+            #raster_array[:,t][spikes]=1
+            ##plt.scatter(spikes, [t]*len(spikes))
+        
+        ##plt.show()
+        
+        #import scipy.io as sio
+        
+        #np.savetxt(file_name[:-4]+"_rasters.txt", raster_array)
 
     button7.on_clicked(export_data)
 
