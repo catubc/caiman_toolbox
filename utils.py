@@ -30,7 +30,9 @@ def run_foopsi(root):
     #lengths = [3000,3500,3500,3000,3000,3000]
     #import imp
     #cm = imp.load_source('caiman', '/home/cat/code/CaImAn/')
-    sys.path.append('/home/cat/code/CaImAn/')
+    
+    caiman_path = np.loadtxt('caiman_folder_location.txt', dtype=str)
+    sys.path.append(str(caiman_path)+'/')
 
     import caiman as cm
     from caiman.source_extraction.cnmf.deconvolution import constrained_foopsi
@@ -725,7 +727,6 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         reset_function()
 
     button.on_clicked(reset_button)
-
     
     
     #***********************************************************************************
@@ -836,12 +837,12 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     #**************************** SAVE PROGRESS BUTTON *********************************
     #**********************************************************************************
     save_progress_ax = plt.axes([0.025, 0.065, 0.04, 0.03])
-    button3 = Button(save_progress_ax, 'Save', color=axcolor, hovercolor='0.975')
+    button3 = Button(save_progress_ax, 'Save\nProgress', color=axcolor, hovercolor='0.975')
     
     def save_progress(event):
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
 
-        print "...saving progress "
+        print "\n\n...saving progress...\n\n "
         np.savez(file_name[:-4]+"_saved_progress",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
 
     button3.on_clicked(save_progress)
@@ -851,12 +852,12 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     #**************************** LOAD PROGRESS BUTTON *********************************
     #**********************************************************************************
     load_progress_ax = plt.axes([0.025, 0.105, 0.04, 0.03])
-    button4 = Button(load_progress_ax, 'Load', color=axcolor, hovercolor='0.975')
+    button4 = Button(load_progress_ax, 'Load\nProgress', color=axcolor, hovercolor='0.975')
     
     def load_progress(event):
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
 
-        print "...loading in-progress file "
+        print "\n\n...loading in-progress file...\n\n "
         data = np.load(file_name[:-4]+"_saved_progress.npz")
         y_array=data['y_array']
         x_array=data['x_array']
@@ -881,7 +882,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
         #print "...saving data in .txt "
         
-        print "...saving progress "
+        print "\n\n... exported ROIs file ... \n\n"
         np.savez(file_name[:-4]+"_ROIs",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
         sio.savemat(file_name[:-4]+'_ROIs.mat', {'y_array':y_array, 'x_array':x_array, 'Bmat_array':Bmat_array, 'thr_array':thr_array, 'traces':traces, 'centres':cm})
         

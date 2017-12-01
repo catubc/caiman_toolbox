@@ -135,10 +135,14 @@ def Caiman_online(root):
     e = Entry(root, justify='left')       #text entry for the filename
     e.delete(0, END)
     e.insert(0, root.data.file_name)
-    e.place(x=120,y=0, width=600)
+    e.place(x=110,y=4, width=600)
     
     x_offset=0; y_offset=30
    
+   
+    l00 = Label(root, text='_'*200)
+    l00.place(x=x_offset, y=y_offset, height=30, width=1000)
+
    
     #******** CNMF Parameters ******************
     #
@@ -363,7 +367,9 @@ def Caiman_online(root):
     e18.insert(0, 'all')
     e18.place(x=x_offset,y=y_offset+5)
 
-
+    y_offset+=30; x_offset=0
+    l000 = Label(root, text='_'*200)
+    l000.place(x=x_offset, y=y_offset, height=30, width=1000)
    
     #********** COMMAND LINE OUTPUT BOX **********
     tkinter_window = False       #Redirect command line outputs to text box in tkinter;
@@ -475,6 +481,7 @@ def Review_ROIs(root):
         save_traces(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
             image_neurons=root.data.Cn, denoised_color='red')
 
+    #******** Select filename:
     def button0():
         print "...selecting file..."
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="*processed.npz", filetypes=(("npz", "*processed.npz"),("All Files", "*.*") ))
@@ -484,22 +491,7 @@ def Review_ROIs(root):
         root.title(os.path.split(root.data.file_name)[1])
         
         load_data()
-            
-    def button1():
-        print "... running correct ROIs..."
-        correct_ROIs(root.data.file_name, root.data.A, root.data.Cn, thr=0.95)
 
-    def button2():
-        print "...plotting contours..."
-        plot_contours(root.data.A, root.data.Cn, thr=0.9)
-
-    def button3():
-        print "... view patches ..."
-        nb_view_patches(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
-            image_neurons=root.data.Cn, denoised_color='red')
-    
-   
-    #******** Select filename:
     b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
     b0.grid(row=0,column=0)
 
@@ -509,18 +501,35 @@ def Review_ROIs(root):
     e1.grid(row=0, column=1)
     e1.place(x=120,width=800)
 
+            
+    #******** Correct ROIs
+    def button1():
+        print "... running correct ROIs..."
+        correct_ROIs(root.data.file_name, root.data.A, root.data.Cn, thr=0.95)
 
-    #******** Run review ROIs function
     b1 = Button(root, text="Review ROIs", command=button1, justify='left')
     b1.place(x=0, y=50)
 
-    #******** Run review ROIs function
-    b2 = Button(root, text="Plot contours", command=button2, justify='left')
-    b2.place(x=0, y=80)
 
-    #******** Run review ROIs function
-    b3 = Button(root, text="View patches", command=button3, justify='left')
-    b3.place(x=0, y=110)
+    #************NOT IMPLEMENTED
+    if False:
+        def button2():
+            print "...plotting contours..."
+            plot_contours(root.data.A, root.data.Cn, thr=0.9)
+
+        def button3():
+            print "... view patches ..."
+            nb_view_patches(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
+                image_neurons=root.data.Cn, denoised_color='red')
+        
+
+        #******** Run review ROIs function
+        b2 = Button(root, text="Plot contours", command=button2, justify='left')
+        b2.place(x=0, y=80)
+
+        #******** Run review ROIs function
+        b3 = Button(root, text="View patches", command=button3, justify='left')
+        b3.place(x=0, y=110)
 
 
 
