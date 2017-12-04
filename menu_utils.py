@@ -400,8 +400,11 @@ def Caiman_online(root):
             no_expected_shapes=e15.get(),    # #expected shapes
             no_timesteps=e16.get(),    # #timesteps
             exceptionality_threshold=e17.get(),    # exceptionatliy threshold
-            total_len_file=e18.get()     # total len of file
+            total_len_file=e18.get(),     # total len of file
+            caiman_location = str(root.caiman_folder)
             )
+        print type(str(root.caiman_folder))
+        print type(root.caiman_folder)
                 
         if tkinter_window:
             import io, subprocess
@@ -557,7 +560,7 @@ def Review_spikes(root):
     e1 = Entry(root)        #text entry for the filename
     e1.delete(0, END)
     e1.insert(0, root.data.file_name)
-    e1.place(x=120,width=800)
+    e1.place(x=120,y=5, width=800)
 
 
     #********* Run foopsi
@@ -566,25 +569,51 @@ def Review_spikes(root):
     l1 = Label(root, text='Foopsi Threshold')
     l1.place(x=x_offset,y=y_offset, height=30,width=110)
     
+    x_offset+=125; y_offset+=5
     e2 = Entry(root, justify='left', width=4)       #text entry for the filename
     e2.delete(0, END)
     e2.insert(0, 2.0)
-    e2.place(x=x_offset+125,y=y_offset+5)
+    e2.place(x=x_offset,y=y_offset)
     
     def button1():
         print "...running foopsi..."
         root.data.foopsi_threshold = e2.get()
         run_foopsi(root)
 
+    x_offset=0; y_offset=80
     b1 = Button(root, text="Run Foopsi", command=button1)
-    b1.place(x=0,y=80)
+    b1.place(x=x_offset,y=y_offset)
     
 
     #********* View rasters
     def button2():
         print "...viewing rasters..."
+        root.data.foopsi_threshold = e2.get()
         view_rasters(root)
+    
+    y_offset+=70
+    b2 = Button(root, text="View all rasters", command=button2)
+    b2.place(x=x_offset,y=y_offset)
+    
 
-    b2 = Button(root, text="View rasters", command=button2)
-    b2.place(x=0,y=150)
+    #********* View single neuron
+    def button2():
+        print "...viewing trace..."
+        root.data.foopsi_threshold = e2.get()
+        root.data.neuron_id = int(e3.get())
+        view_neuron(root)
+
+    y_offset+=70
+    b2 = Button(root, text="View neuron", command=button2)
+    b2.place(x=x_offset,y=y_offset)
+    
+    #x_offset+=100
+    #l2 = Label(root, text='Neuron #:')
+    #l2.place(x=x_offset,y=y_offset, height=30,width=110)
+    
+    x_offset+=125; y_offset+=5
+    e3 = Entry(root, justify='left', width=4)       #text entry for the filename
+    e3.delete(0, END)
+    e3.insert(0, 0)
+    e3.place(x=x_offset,y=y_offset)
             

@@ -66,20 +66,19 @@ def run_foopsi(root):
     raster_array = np.array(raster_array)
     c_array=np.array(c_array)
     #Compute 
-    print "...extracting binary rasters..."
-    rasters_array = []
-    thresholds = np.float32([root.data.foopsi_threshold])
-    for threshold in thresholds:
-        print "... generating rasters for threshold: ", threshold
-        rasters = np.zeros(raster_array.shape,dtype=np.float32)
-        for k in range(len(rasters)):
-            indexes = np.where(raster_array[k]>threshold)[0]
-            rasters[k][indexes]=1
-        rasters_array.append(rasters)
+    #print "...extracting binary rasters..."
+    #rasters_array = []
+    #thresholds = np.float32([root.data.foopsi_threshold])
+    #for threshold in thresholds:
+    #    print "... generating rasters for threshold: ", threshold
+    #    rasters = np.zeros(raster_array.shape,dtype=np.float32)
+    #    for k in range(len(rasters)):
+    #        indexes = np.where(raster_array[k]>threshold)[0]
+    #        rasters[k][indexes]=1
+    #    rasters_array.append(rasters)
 
-    np.savez(file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold), original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, rasters=rasters_array[0],centres=centres)
-
-    sio.savemat(file_name[:-4]+'_deconvolved_data_thr'+str(root.data.foopsi_threshold)+'.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'rasters':rasters_array[0],'centres':centres})
+    np.savez(file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold), original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, centres=centres)
+    sio.savemat(file_name[:-4]+'_deconvolved_data_thr'+str(root.data.foopsi_threshold)+'.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'centres':centres})
 
 def view_rasters(root):
     print "...View rasters ..."
@@ -100,10 +99,44 @@ def view_rasters(root):
     plt.xlabel("Frames", fontsize=25)
     plt.ylabel("Neuron ID", fontsize=25)
     ax.tick_params(axis='both', which='both', labelsize=25)
-    plt.title("Foopsi threshold: "+str(root.data.foopsi_threshold), fontsize=25)
+    plt.title(root.deconvolved_filename+"\nFoopsi threshold: "+str(root.data.foopsi_threshold), fontsize=15)
     plt.show()
-            
 
+
+def view_neuron(root):
+    print "...viewing neuron: ", root.data.neuron_id
+    
+    data = np.load(root.data.file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold)+".npz")
+    
+    original_traces=data['original_traces']
+    deconvolved_traces=data['deconvolved_traces']
+    foopsi_probabilities=data['foopsi_probabilities']
+    centres=data['centres']
+    
+    fig = plt.figure()
+    ax=plt.subplot(1,1,1)
+    mng = plt.get_current_fig_manager()
+    mng.resize(*mng.window.maxsize())
+
+    print foopsi_probabilities[root.data.neuron_id]
+    print root.data.foopsi_threshold
+    spikes = np.where(foopsi_probabilities[root.data.neuron_id]>float(root.data.foopsi_threshold))[0]
+    print spikes
+    #spikes = np.where(derivative>(der_std*3))[0]
+    ax.vlines(spikes,[-25],[-50])
+        
+    plt.plot([0,len(original_traces[root.data.neuron_id])], [float(root.data.foopsi_threshold),float(root.data.foopsi_threshold)], 'r--', linewidth=2, color='red', alpha=0.7)
+    plt.plot(original_traces[root.data.neuron_id])
+    plt.plot(deconvolved_traces[root.data.neuron_id])
+    plt.plot(foopsi_probabilities[root.data.neuron_id])
+    plt.xlim(0,len(original_traces[root.data.neuron_id]))
+    plt.title("Cell: "+str(root.data.neuron_id), fontsize=20)
+    plt.xlabel("Frames", fontsize=20)
+    plt.ylabel("DF/F", fontsize=20)
+    ax.tick_params(axis='both', which='both', labelsize=20)
+    
+    plt.show()
+    
 def convert_tif_npy(file_name):
     images = tiff.imread(file_name)
     np.save(file_name[:-4], images)
@@ -508,16 +541,15 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         #Plot original traces
         ax2.plot(traces[:,nearest_cell]+50, color='blue', alpha=0.8)
         #Plot spikes
-        temp_trace = traces[:,nearest_cell]
-        derivative = temp_trace[1:]-temp_trace[:-1]
-        derivative = np.gradient(traces[:,nearest_cell])
-        der_std = np.std(derivative)
-        ax2.plot(derivative)
-        spikes = np.where(derivative>(der_std*3))[0]
-        ax2.plot([0,len(traces)], [der_std*3,der_std*3], 'r--', color='red')
-        ax2.vlines(spikes,[0],[-100])
+        #temp_trace = traces[:,nearest_cell]
+        #derivative = temp_trace[1:]-temp_trace[:-1]
+        #derivative = np.gradient(traces[:,nearest_cell])
+        #der_std = np.std(derivative)
+        #ax2.plot(derivative)
+        #spikes = np.where(derivative>(der_std*3))[0]
+        #ax2.plot([0,len(traces)], [der_std*3,der_std*3], 'r--', color='red')
+        #ax2.vlines(spikes,[0],[-100])
         
-
         fig.canvas.draw()
 
 
@@ -575,7 +607,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                 ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidth=l_width, colors=colors)
 
                 print " # cells: ", len(y_array)
-            
+
                 circle_size=5
                 #Define N points on a circle centred at mouse click; shift circle to location
                 points = np.vstack(PointsInCircum(circle_size,n=20))
@@ -750,7 +782,6 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     #***********************************************************************************
     #****************************** NEXT NEURON BUTTON *********************************
     #***********************************************************************************
-
     next_neuron_ax = plt.axes([0.025, 0.405, 0.04, 0.03])
     button5 = Button(next_neuron_ax, 'Next\nNeuron', color=axcolor, hovercolor='0.975')
     
@@ -773,7 +804,6 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     #***********************************************************************************
     #****************************** PREVIOUS NEURON BUTTON *********************************
     #***********************************************************************************
-
     previous_neuron_ax = plt.axes([0.025, 0.365, 0.04, 0.03])
     button6 = Button(previous_neuron_ax, 'Previous\nNeuron', color=axcolor, hovercolor='0.975')
     
