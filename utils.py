@@ -38,7 +38,7 @@ def run_foopsi(root):
     from caiman.source_extraction.cnmf.deconvolution import constrained_foopsi
     
     c_array = []
-    raster_array = []
+    foopsi_traces = []
     for n, trace in enumerate(traces):
     #for n, trace in enumerate(traces[:10]):
         print " ... cell: ", n
@@ -61,24 +61,21 @@ def run_foopsi(root):
                 temp_raster.extend(sp)
 
         c_array.append(temp_c)
-        raster_array.append(temp_raster)
+        foopsi_traces.append(temp_raster)
 
-    raster_array = np.array(raster_array)
+    foopsi_traces = np.array(foopsi_traces)
     c_array=np.array(c_array)
+    
     #Compute 
-    #print "...extracting binary rasters..."
-    #rasters_array = []
-    #thresholds = np.float32([root.data.foopsi_threshold])
-    #for threshold in thresholds:
-    #    print "... generating rasters for threshold: ", threshold
-    #    rasters = np.zeros(raster_array.shape,dtype=np.float32)
-    #    for k in range(len(rasters)):
-    #        indexes = np.where(raster_array[k]>threshold)[0]
-    #        rasters[k][indexes]=1
-    #    rasters_array.append(rasters)
+    print "...extracting binary rasters..."
+    rasters = []
+    threshold = float(root.data.foopsi_threshold)
+    for k in range(len(foopsi_traces)):
+        indexes = np.where(foopsi_traces[k]>threshold)[0]
+        rasters.append(indexes)
 
-    np.savez(file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold), original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=raster_array, centres=centres)
-    sio.savemat(file_name[:-4]+'_deconvolved_data_thr'+str(root.data.foopsi_threshold)+'.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':raster_array,'centres':centres})
+    np.savez(file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold), original_traces=traces, deconvolved_traces=c_array, foopsi_probabilities=foopsi_traces, rasters=rasters, centres=centres)
+    sio.savemat(file_name[:-4]+'_deconvolved_data_thr'+str(root.data.foopsi_threshold)+'.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':foopsi_traces,'rasters':rasters,'centres':centres})
 
 def view_rasters(root):
     print "...View rasters ..."
@@ -86,15 +83,16 @@ def view_rasters(root):
     root.deconvolved_filename = root.data.file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold)+".npz"
     data = np.load(root.deconvolved_filename)
     rasters = data['rasters']
+    traces = data['original_traces']
     print rasters.shape
 
     ax=plt.subplot(1,1,1)
     for k in range(len(rasters)):
-        print len(rasters[k])
-        indexes = np.where(rasters[k]>0)[0]
-        plt.scatter(indexes, [k]*len(indexes))
+        #print len(rasters[k])
+        #indexes = np.where(rasters[k]>0)[0]
+        plt.scatter(rasters[k], [k]*len(rasters[k]))
     
-    plt.xlim(-1,len(rasters[0])+1)
+    plt.xlim(-1,len(traces[0])+1)
     plt.ylim(-1,len(rasters)+1)
     plt.xlabel("Frames", fontsize=25)
     plt.ylabel("Neuron ID", fontsize=25)
@@ -124,7 +122,7 @@ def view_neuron(root):
     print spikes
     #spikes = np.where(derivative>(der_std*3))[0]
     ax.vlines(spikes,[-25],[-50])
-        
+
     plt.plot([0,len(original_traces[root.data.neuron_id])], [float(root.data.foopsi_threshold),float(root.data.foopsi_threshold)], 'r--', linewidth=2, color='red', alpha=0.7)
     plt.plot(original_traces[root.data.neuron_id])
     plt.plot(deconvolved_traces[root.data.neuron_id])
