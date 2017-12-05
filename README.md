@@ -1,4 +1,4 @@
-# caiman_toolbox
+# Caiman GUI and Analysis Toolbox
 
 CaImAn GUI and analysis toolbox is an interface for use with the CaImAn software available: https://github.com/flatironinstitute/CaImAn
 
