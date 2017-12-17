@@ -142,6 +142,70 @@ def convert_tif_npy(file_name):
     tiff.imsave(file_name[:-4]+"_500frames.tif", images[:500])
     np.save(file_name[:-4]+"_500frames.npy", images[:500])
 
+
+def motion_correct_caiman(root):
+
+    fname = root.data.file_name
+
+    # motion correction parameters
+    niter_rig = 1               # number of iterations for rigid motion correction
+    max_shifts = (6, 6)         # maximum allow rigid shift
+    splits_rig = 56             # for parallelization split the movies in  num_splits chuncks across time
+    strides = (48, 48)          # start a new patch for pw-rigid motion correction every x pixels
+    overlaps = (24, 24)         # overlap between pathes (size of patch strides+overlaps)
+    splits_els = 56             # for parallelization split the movies in  num_splits chuncks across time
+    upsample_factor_grid = 4    # upsample factor to avoid smearing when merging patches
+    max_deviation_rigid = 3     # maximum deviation allowed for patch with respect to rigid shifts
+        
+    
+    
+    #%% start a cluster for parallel processing
+    caiman_path = np.loadtxt('caiman_folder_location.txt', dtype=str)       #<------------ is this necessary still?
+    sys.path.append(str(caiman_path)+'/')
+
+    import caiman as cm
+    c, dview, n_processes = cm.cluster.setup_cluster(backend='local', n_processes=None, single_thread=False)
+
+    #min_mov = cm.load(fname, subindices=range(200)).min() 
+    all_mov = tiff.imread(fname)
+    min_mov = all_mov.min()
+    
+        # this will be subtracted from the movie to make it non-negative 
+
+    from caiman.motion_correction import MotionCorrect
+    mc = MotionCorrect(fname, min_mov,
+                   dview=dview, max_shifts=max_shifts, niter_rig=niter_rig,
+                   splits_rig=splits_rig, 
+                   strides= strides, overlaps= overlaps, splits_els=splits_els,
+                   upsample_factor_grid=upsample_factor_grid,
+                   max_deviation_rigid=max_deviation_rigid, 
+                   shifts_opencv = True, nonneg_movie = True)
+
+    mc.motion_correct_rigid(save_movie=False,template = None)
+    new_templ = mc.total_template_rig
+
+    dview.terminate()
+
+    print np.array(mc.fname_tot_rig).shape
+    print np.array(mc.total_template_rig).shape
+    print np.array(mc.templates_rig).shape
+    print np.array(mc.shifts_rig).shape
+    np.savetxt(fname[:-4]+"_shifts_rig.txt",mc.shifts_rig)
+
+    print "... shifting image stack based on motion correction..."
+    
+    reg_mov = np.zeros(all_mov.shape, dtype=np.uint16)
+    for k in range(len(all_mov)):
+        print int(mc.shifts_rig[k][0]), int(mc.shifts_rig[k][1])
+        reg_mov[k] = np.roll(np.roll(all_mov[k], int(mc.shifts_rig[k][0]), axis=0), int(mc.shifts_rig[k][1]), axis=1)
+    
+    tiff.imsave(fname[:-4]+"_registered.tif", reg_mov)
+
+    plt.title("new_template", fontsize=20)
+    plt.imshow(new_templ, cmap='gray')
+    plt.show()
+    
+
 def Ensemble_detection(root):
     print "...Ensemble detection ... (not implemented)"
 

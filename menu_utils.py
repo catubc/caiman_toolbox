@@ -4,6 +4,7 @@ import tkFileDialog
 import numpy as np
 from utils import *
 
+
 def NewFile(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
@@ -437,12 +438,48 @@ def Caiman_offline(root):
         if k>0: ele.destroy()
 
     print "...caiman offline...(not implemented)"
+    print "...Note: caiman online is currently running in caiman offline mode... "
 
 
 def Image_registration(root):
+    
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
-    print "...image registration ...(not implemented)"
+
+    print "... image registration..."
+    
+
+    root.minsize(width=800, height=500)
+    root.data = emptyObject()
+    
+
+    #******** Select filename:
+    def button0():
+        print "...selecting file..."
+        #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
+
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        #root.title(os.path.split(root.data.file_name)[1])
+        
+    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0,column=0)
+    
+    e1 = Entry(root, justify='left')       #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, '')
+    e1.grid(row=0, column=1)
+    e1.place(x=120,width=800)
+   
+    def button1():
+        print "...motion correcting: ", root.data.file_name
+        motion_correct_caiman(root)
+        
+    #******** Run review ROIs function
+    b1 = Button(root, text="motion correct", command=button1)
+    b1.grid(row=1, column=0)
+
 
 
 class emptyObject():
