@@ -143,6 +143,58 @@ def convert_tif_npy(file_name):
     np.save(file_name[:-4]+"_500frames.npy", images[:500])
 
 
+def crop_image(file_name):
+    global coords, ax, fig1, cid, fname,image_stack, single_frame             #IS THIS Global declaration unsafe for other functions?
+
+    print "... reading tif..."
+    image_stack = tiff.imread(file_name)
+    single_frame = image_stack[0].copy()
+    fname = file_name
+
+    #image_temp = image_stack[0].copy()
+
+    fig1, ax = plt.subplots()
+    coords=[]
+
+    ax.imshow(image_stack[0])#, vmin=0.0, vmax=0.02)
+    ax.set_title("Click on top left and bottom right of area to crop")
+    cid = fig1.canvas.mpl_connect('button_press_event', on_click)
+    plt.show()
+    
+
+ 
+def on_click(event):
+    global coords, image_temp, ax, fig1, cids, image_stack, single_frame     #IS THIS Global declaration unsafe for other functions?
+        
+    if event.inaxes is not None:
+        coords.append((event.ydata, event.xdata))
+        print coords
+        for j in range(len(coords)):
+            for k in range(3):
+                for l in range(3):
+                    single_frame[int(coords[j][0]-1+k)][int(coords[j][1])-1+l]=np.max(single_frame)
+
+        ax.imshow(single_frame)
+        fig1.canvas.draw()
+    else:
+        plt.close()
+        fig1.canvas.mpl_disconnect(cid)
+        
+        print "...saving cropped .tif..."
+        x_coords = np.int32(np.sort([coords[0][0], coords[1][0]]))
+        y_coords = np.int32(np.sort([coords[0][1], coords[1][1]]))
+        print x_coords, y_coords
+    
+        tiff.imsave(fname[:-4]+"_cropped.tif", image_stack[:, x_coords[0]:x_coords[1], y_coords[0]: y_coords[1]])
+        np.save(fname[:-4]+"_cropped.npy", image_stack[:, x_coords[0]:x_coords[1], y_coords[0]: y_coords[1]])
+        print "...done..."
+        
+        #Must do operations here... tkinter doesn't play nice with other parts
+        ax = plt.subplot(1,1,1)
+        ax.imshow(single_frame[x_coords[0]:x_coords[1], y_coords[0]: y_coords[1]])
+        plt.show()
+        print "...exiting..."
+        
 def motion_correct_caiman(root):
 
     fname = root.data.file_name
@@ -153,11 +205,10 @@ def motion_correct_caiman(root):
     splits_rig = 56             # for parallelization split the movies in  num_splits chuncks across time
     strides = (48, 48)          # start a new patch for pw-rigid motion correction every x pixels
     overlaps = (24, 24)         # overlap between pathes (size of patch strides+overlaps)
-    splits_els = 56             # for parallelization split the movies in  num_splits chuncks across time
+    splits_els = 30             # for parallelization split the movies in  num_splits chuncks across time
     upsample_factor_grid = 4    # upsample factor to avoid smearing when merging patches
     max_deviation_rigid = 3     # maximum deviation allowed for patch with respect to rigid shifts
         
-    
     
     #%% start a cluster for parallel processing
     caiman_path = np.loadtxt('caiman_folder_location.txt', dtype=str)       #<------------ is this necessary still?
@@ -170,7 +221,7 @@ def motion_correct_caiman(root):
     all_mov = tiff.imread(fname)
     min_mov = all_mov.min()
     
-        # this will be subtracted from the movie to make it non-negative 
+    # this will be subtracted from the movie to make it non-negative 
 
     from caiman.motion_correction import MotionCorrect
     mc = MotionCorrect(fname, min_mov,
@@ -182,6 +233,7 @@ def motion_correct_caiman(root):
                    shifts_opencv = True, nonneg_movie = True)
 
     mc.motion_correct_rigid(save_movie=False,template = None)
+    
     new_templ = mc.total_template_rig
 
     dview.terminate()

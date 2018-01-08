@@ -105,6 +105,49 @@ def Tif_convert(root):
     b1.grid(row=1, column=0)
 
 
+def Crop_rectangle(root):
+    for k, ele in enumerate(root.winfo_children()):
+        if k>0: ele.destroy()
+
+    print "Croping image"
+
+    root.minsize(width=800, height=500)
+    root.data = emptyObject()
+    #root.data.root_dir =  '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/'
+    #root.data.file_name = '/media/cat/4TB/in_vivo/rafa/alejandro/G2M5/20170511/000/Registered.tif'
+
+    #******** Select filename:
+    def button0():
+        print "...selecting file..."
+        #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
+
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        #root.title(os.path.split(root.data.file_name)[1])
+        
+    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0,column=0)
+    
+    e1 = Entry(root, justify='left')       #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, '')
+    e1.grid(row=0, column=1)
+    e1.place(x=120,width=800)
+   
+    def button1():
+        print "...croping: ", root.data.file_name
+        crop_image(root.data.file_name)
+        #os.system("python ../CaImAn/demo_OnACID.py "+root.data.file_name)
+        print "... done!"
+        
+    #******** Run review ROIs function
+    b1 = Button(root, text="Crop tif (or .npy)", command=button1)
+    b1.grid(row=1, column=0)
+
+def Crop_arbitrary(root):
+    print "... arbitrary crop not yet implemented ..."
+
 def Caiman_online(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()

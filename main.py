@@ -42,6 +42,8 @@ preprocessmenu = Menu(menu)
 menu.add_cascade(label="Pre-Process", menu=preprocessmenu)
 preprocessmenu.add_command(label="Image Registration", command=lambda: Image_registration(root))
 preprocessmenu.add_command(label="Convert .tif -> .npy", command=lambda: Tif_convert(root))
+preprocessmenu.add_command(label="Rectangle Crop Image", command=lambda: Crop_rectangle(root))
+preprocessmenu.add_command(label="Arbitrary Crop Image (not implemented)", command=lambda: Crop_arbitrary(root))
 
 #************************************************************
 #*********************** PROCESS MENU ***********************
