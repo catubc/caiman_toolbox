@@ -23,9 +23,9 @@ def run_foopsi(root):
     data = np.load(file_name)
     traces = data['traces'].T
     centres = data['cm']
-    print centres[0]
+    print (centres[0])
     
-    print len(traces)
+    print (len(traces))
     
     #lengths = [3000,3500,3500,3000,3000,3000]
     #import imp
@@ -41,7 +41,7 @@ def run_foopsi(root):
     foopsi_traces = []
     for n, trace in enumerate(traces):
     #for n, trace in enumerate(traces[:10]):
-        print " ... cell: ", n
+        print (" ... cell: ", n)
         #trace+=20
         temp_c = []
         temp_raster = []
@@ -55,7 +55,7 @@ def run_foopsi(root):
         #This runs deconvolution chunkwise and setsbaseline based on mean of the input traces - to account for differences in light intensity across frames...
         else:                                   
             for l in range(len(lengths)):
-                print np.sum(lengths[0:l]), np.sum(lengths[0:l+1])
+                print (np.sum(lengths[0:l]), np.sum(lengths[0:l+1]))
                 c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace[np.sum(lengths[0:l]):np.sum(lengths[0:l+1])]+abs(np.mean(trace)),p=2)
                 temp_c.extend(c)
                 temp_raster.extend(sp)
@@ -67,7 +67,7 @@ def run_foopsi(root):
     c_array=np.array(c_array)
     
     #Compute 
-    print "...extracting binary rasters..."
+    print ("...extracting binary rasters...")
     rasters = []
     threshold = float(root.data.foopsi_threshold)
     for k in range(len(foopsi_traces)):
@@ -78,13 +78,13 @@ def run_foopsi(root):
     sio.savemat(file_name[:-4]+'_deconvolved_data_thr'+str(root.data.foopsi_threshold)+'.mat', {'original_traces':traces, 'deconvolved_traces':c_array, 'foopsi_probabilities':foopsi_traces,'rasters':rasters,'centres':centres})
 
 def view_rasters(root):
-    print "...View rasters ..."
+    print ("...View rasters ...")
     
     root.deconvolved_filename = root.data.file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold)+".npz"
     data = np.load(root.deconvolved_filename)
     rasters = data['rasters']
     traces = data['original_traces']
-    print rasters.shape
+    print (rasters.shape)
 
     ax=plt.subplot(1,1,1)
     for k in range(len(rasters)):
@@ -102,7 +102,7 @@ def view_rasters(root):
 
 
 def view_neuron(root):
-    print "...viewing neuron: ", root.data.neuron_id
+    print ("...viewing neuron: ", root.data.neuron_id)
     
     data = np.load(root.data.file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold)+".npz")
     
@@ -113,13 +113,13 @@ def view_neuron(root):
     
     fig = plt.figure()
     ax=plt.subplot(1,1,1)
-    mng = plt.get_current_fig_manager()
-    mng.resize(*mng.window.maxsize())
+    #mng = plt.get_current_fig_manager()
+    #mng.resize(*mng.window.maxsize())
 
-    print foopsi_probabilities[root.data.neuron_id]
-    print root.data.foopsi_threshold
+    print (foopsi_probabilities[root.data.neuron_id])
+    print (root.data.foopsi_threshold)
     spikes = np.where(foopsi_probabilities[root.data.neuron_id]>float(root.data.foopsi_threshold))[0]
-    print spikes
+    print (spikes)
     #spikes = np.where(derivative>(der_std*3))[0]
     ax.vlines(spikes,[-25],[-50])
 
@@ -146,7 +146,7 @@ def convert_tif_npy(file_name):
 def crop_image(file_name):
     global coords, ax, fig1, cid, fname,image_stack, single_frame             #IS THIS Global declaration unsafe for other functions?
 
-    print "... reading tif..."
+    print ("... reading tif...")
     image_stack = tiff.imread(file_name)
     single_frame = image_stack[0].copy()
     fname = file_name
@@ -168,7 +168,7 @@ def on_click(event):
         
     if event.inaxes is not None:
         coords.append((event.ydata, event.xdata))
-        print coords
+        print (coords)
         for j in range(len(coords)):
             for k in range(3):
                 for l in range(3):
@@ -180,20 +180,20 @@ def on_click(event):
         plt.close()
         fig1.canvas.mpl_disconnect(cid)
         
-        print "...saving cropped .tif..."
+        print ("...saving cropped .tif...")
         x_coords = np.int32(np.sort([coords[0][0], coords[1][0]]))
         y_coords = np.int32(np.sort([coords[0][1], coords[1][1]]))
-        print x_coords, y_coords
+        print (x_coords, y_coords)
     
         tiff.imsave(fname[:-4]+"_cropped.tif", image_stack[:, x_coords[0]:x_coords[1], y_coords[0]: y_coords[1]])
         np.save(fname[:-4]+"_cropped.npy", image_stack[:, x_coords[0]:x_coords[1], y_coords[0]: y_coords[1]])
-        print "...done..."
+        print ("...done...")
         
         #Must do operations here... tkinter doesn't play nice with other parts
         ax = plt.subplot(1,1,1)
         ax.imshow(single_frame[x_coords[0]:x_coords[1], y_coords[0]: y_coords[1]])
         plt.show()
-        print "...exiting..."
+        print ("...exiting...")
         
 def motion_correct_caiman(root):
 
@@ -213,7 +213,8 @@ def motion_correct_caiman(root):
     #%% start a cluster for parallel processing
     caiman_path = np.loadtxt('caiman_folder_location.txt', dtype=str)       #<------------ is this necessary still?
     sys.path.append(str(caiman_path)+'/')
-
+    print (caiman_path)
+	
     import caiman as cm
     c, dview, n_processes = cm.cluster.setup_cluster(backend='local', n_processes=None, single_thread=False)
 
@@ -238,17 +239,17 @@ def motion_correct_caiman(root):
 
     dview.terminate()
 
-    print np.array(mc.fname_tot_rig).shape
-    print np.array(mc.total_template_rig).shape
-    print np.array(mc.templates_rig).shape
-    print np.array(mc.shifts_rig).shape
+    #print np.array(mc.fname_tot_rig).shape
+    #print np.array(mc.total_template_rig).shape
+    #print np.array(mc.templates_rig).shape
+    #print np.array(mc.shifts_rig).shape
     np.savetxt(fname[:-4]+"_shifts_rig.txt",mc.shifts_rig)
 
-    print "... shifting image stack based on motion correction..."
+    print ("... shifting image stack based on motion correction...")
     
     reg_mov = np.zeros(all_mov.shape, dtype=np.uint16)
     for k in range(len(all_mov)):
-        print int(mc.shifts_rig[k][0]), int(mc.shifts_rig[k][1])
+        print (int(mc.shifts_rig[k][0]), int(mc.shifts_rig[k][1]))
         reg_mov[k] = np.roll(np.roll(all_mov[k], int(mc.shifts_rig[k][0]), axis=0), int(mc.shifts_rig[k][1]), axis=1)
     
     tiff.imsave(fname[:-4]+"_registered.tif", reg_mov)
@@ -259,7 +260,7 @@ def motion_correct_caiman(root):
     
 
 def Ensemble_detection(root):
-    print "...Ensemble detection ... (not implemented)"
+    print ("...Ensemble detection ... (not implemented)")
 
 def About():
     tkMessageBox.showinfo("About", "CaImAn Ver 1.0 ...")
@@ -347,7 +348,7 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, dis
 
     d1, d2 = np.shape(Cn)
     d, nr = np.shape(A)
-    print "# neurons: ", nr
+    print ("# neurons: ", nr)
     if max_number is None:
         max_number = nr
 
@@ -371,7 +372,7 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, dis
     coordinates = []
     cm = com(A, d1, d2)
     for i in range(np.minimum(nr, max_number)):
-        print i,
+        print (i)
     
         pars = dict(kwargs)
         if thr_method == 'nrg':
@@ -497,7 +498,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     d1, d2 = np.shape(Cn)
     d, nr = np.shape(A)
-    print "# neurons: ", nr
+    print ("# neurons: ", nr)
     if max_number is None:
         max_number = nr
 
@@ -512,14 +513,14 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         global cm, traces, images_kalman
         cm = com(A, d1, d2)
 
-        print Cn.shape
-        print file_name
-        print file_name.replace("_processed.npz",'.npy')
+        #print Cn.shape
+        #print file_name
+        print (file_name.replace("_processed.npz",'.npy'))
         images_kalman = np.load(file_name.replace("_processed.npz",'.npy'))
-        print images_kalman.shape
+        print (images_kalman.shape)
         
         traces = np.load(file_name[:-4]+"_traces.npy")
-        print traces.shape
+        print (traces.shape)
     
     reload_data()
     
@@ -528,8 +529,8 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
     #fig, ax = plt.subplots()
     fig = plt.figure()
-    mng = plt.get_current_fig_manager()
-    mng.resize(*mng.window.maxsize())
+    #mng = plt.get_current_fig_manager()
+    #mng.resize(*mng.window.maxsize())
     gs = gridspec.GridSpec(2,4)
     #ax1 = plt.subplot(self.gs[0:2,0:2])
     
@@ -544,7 +545,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     nearest_cell=(previous_cell+1)
 
     img_data = images_kalman
-    print img_data.shape
+    print (img_data.shape)
 
     #ax=plt.subplot(1,2,1)
     ax = plt.subplot(gs[0:2,0:2])
@@ -581,7 +582,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     for k in range(nr):
     #for k in range(10):                                         #this index matches Bokeh plot numbering
         i=k
-        print "cell: ", k, " coords: ", cm[i,1],cm[i,0]
+        print ("cell: ", k, " coords: ", cm[i,1],cm[i,0])
         
         pars = dict(kwargs)
         if thr_method == 'nrg':
@@ -674,9 +675,9 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         ''' Reset function called by various buttons to redraw everything
         '''
         global nearest_cell, previous_cell, l_width, ylim_max,  ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
-        print "...reset function called ..."
-        print "...nearest_cell: ", nearest_cell
-        print "...previous_cell: ", previous_cell
+        print ("...reset function called ...")
+        print ("...nearest_cell: ", nearest_cell)
+        print ("...previous_cell: ", previous_cell)
         
         #******* Redraw movie panel
         ax.cla()
@@ -703,16 +704,16 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3, add_cell_flag
         
         if event.inaxes is not None:
-            print "...button press: ", event.ydata, event.xdata
+            print ("...button press: ", event.ydata, event.xdata)
             
             if ax !=event.inaxes: 
-                print " click outside image box "
+                print (" click outside image box ")
                 return
 
-            print " click inside image box "
+            print (" click inside image box ")
                 
             if add_cell_flag:
-                print "... adding cell...", add_cell_flag
+                print ("... adding cell...", add_cell_flag)
                 add_cell_flag=False
 
                 
@@ -720,7 +721,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                 ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidth=l_width, colors=colors)
                 ax.contour(y_array[nearest_cell], x_array[nearest_cell], Bmat_array[nearest_cell], [thr_array[nearest_cell]], linewidth=l_width, colors=colors)
 
-                print " # cells: ", len(y_array)
+                print (" # cells: ", len(y_array))
 
                 circle_size=5
                 #Define N points on a circle centred at mouse click; shift circle to location
@@ -745,7 +746,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                 #Add grids
                 x_array = np.append(x_array,[x_array[-1]],axis=0)       #*** Append ygrid
                 y_array = np.append(y_array,[y_array[-1]],axis=0)       #*** Append xgrid
-                print len(x_array[0]), len(y_array[0])
+                print (len(x_array[0]), len(y_array[0]))
 
                 #Add thrshold
                 thr_array = np.append(thr_array,[thr_array[-1]], axis=0)
@@ -759,12 +760,12 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                 for i in range(len(Bmat_array[0])):
                     for j in range(len(Bmat_array[0][0])):
                         all_points.append([i,j])
-                print "len allpoints:" , len(all_points)
+                print ("len allpoints:" , len(all_points))
                         
                 mask = vertixes_path.contains_points(all_points)
                 mask = np.reshape(mask,(len(Bmat_array[0]),len(Bmat_array[0][0])))
                 
-                print Bmat_array.shape, mask.shape
+                print (Bmat_array.shape, mask.shape)
                 Bmat_array = np.append(Bmat_array, [mask], axis=0)       #*** Append Bmat (mask)
                 
                 #fig41 = plt.subplots()     #Check ROI drawn.
@@ -773,13 +774,13 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                 
                 #Add traces:
                 #filename = root.data.file_name #'/media/cat/4TB/in_vivo/rafa/alejandro/20171013/cropped_Registered_20171013to20171024_processed.npz'
-                print file_name
+                print (file_name)
                 image_stack_1D = np.load(file_name)['Yr'].T
                 
                 mask_1d = np.ravel(mask.T)
                 temp_trace = []
                 for k in range(len(image_stack_1D)):
-                    print "...frame: ", k
+                    print ("...frame: ", k)
                     temp_trace.append(np.sum(image_stack_1D[k]*mask_1d))
                 
                 baseline = np.mean(temp_trace)
@@ -794,9 +795,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                     plt.plot(temp_trace_dff)
                     plt.show()
                     
-                    print traces.shape
-                    print temp_trace.shape
-                    print traces.shape
+                    print (traces.shape)
                                 
                 
                 reset_function()
@@ -806,7 +805,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
                 return
             
             else: 
-                print "... selecting cells..."
+                print ("... selecting cells...")
                 
                 #***********Clear previous 2 cells *******
                 ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidth=l_width, colors=colors)
@@ -814,7 +813,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
                 previous_cell = nearest_cell
                 nearest_cell = find_nearest_euclidean(cm, [event.ydata, event.xdata])
-                print "nearest_cell: ", nearest_cell
+                print ("nearest_cell: ", nearest_cell)
 
                 #Redraw new cells
                 ax.contour(y_array[previous_cell], x_array[previous_cell], Bmat_array[previous_cell], [thr_array[previous_cell]], linewidths=l_width, colors='red',alpha=0.9)
@@ -863,9 +862,9 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     resetax = plt.axes([0.025, 0.025, 0.03, 0.03])
     button = Button(resetax, 'Reset', color=axcolor, hovercolor='0.975')
     def reset_button(event):
-        print "...reseting..."
+        print ("...reseting...")
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, color_selected, img_data, ax, ax2, ax3
-        print len(y_array)
+        print (len(y_array))
 
         previous_cell = 0
         nearest_cell=(previous_cell+1)%len(x_array)
@@ -903,12 +902,12 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, color_selected, img_data, ax, ax2, ax3
         
         if nearest_cell==len(x_array)-1:
-            print "... you are at the last cell..."
+            print ("... you are at the last cell...")
             return
 
         previous_cell = nearest_cell
         nearest_cell = nearest_cell+1
-        print "next cell: ", nearest_cell
+        print ("next cell: ", nearest_cell)
 
         reset_function()
 
@@ -925,7 +924,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, color_selected, img_data, ax, ax2, ax3
 
         if nearest_cell==0:
-            print "... you are at the first cell..."
+            print ("... you are at the first cell...")
             return
 
         previous_cell=nearest_cell
@@ -942,7 +941,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     add_cell_ax = plt.axes([0.025, 0.445, 0.03, 0.03])
     button8 = Button(add_cell_ax, 'Add\nNeuron', color=axcolor, hovercolor='0.975')
     def add_cell(event):
-        print "...reseting..."
+        print ("...reseting...")
         global add_cell_flag
         
         add_cell_flag = True
@@ -959,9 +958,9 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     def delete_cell(event):
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, color_selected, img_data, ax, ax2, ax3
 
-        print "...deleting cell: ", nearest_cell
+        print ("...deleting cell: ", nearest_cell)
 
-        print len(y_array)
+        print (len(y_array))
         y_array=np.delete(y_array, nearest_cell, axis=0)
         x_array=np.delete(x_array, nearest_cell, axis=0)
         Bmat_array=np.delete(Bmat_array, nearest_cell, axis=0)
@@ -986,7 +985,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     def save_progress(event):
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
 
-        print "\n\n...saving progress...\n\n "
+        print ("\n\n...saving progress...\n\n ")
         np.savez(file_name[:-4]+"_saved_progress",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
 
     button3.on_clicked(save_progress)
@@ -1001,7 +1000,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     def load_progress(event):
         global nearest_cell, previous_cell, l_width, ylim_max, ylim_min, y_array, x_array, Bmat_array, thr_array, traces, cm, img1, img_data, ax, ax2, ax3
 
-        print "\n\n...loading in-progress file...\n\n "
+        print ("\n\n...loading in-progress file...\n\n ")
         data = np.load(file_name[:-4]+"_saved_progress.npz")
         y_array=data['y_array']
         x_array=data['x_array']
@@ -1026,7 +1025,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
 
         #print "...saving data in .txt "
         
-        print "\n\n... exported ROIs file ... \n\n"
+        print ("\n\n... exported ROIs file ... \n\n")
         np.savez(file_name[:-4]+"_ROIs",  y_array=y_array, x_array=x_array, Bmat_array=Bmat_array, thr_array=thr_array, traces=traces, cm = cm)
         sio.savemat(file_name[:-4]+'_ROIs.mat', {'y_array':y_array, 'x_array':x_array, 'Bmat_array':Bmat_array, 'thr_array':thr_array, 'traces':traces, 'centres':cm})
         
@@ -1115,7 +1114,7 @@ def save_traces(file_name, Yr, A, C, b, f, d1, d2, YrA = None, image_neurons=Non
 
     x = np.arange(T)
     z = old_div(np.squeeze(np.array(Y_r[:, :].T)), 100)
-    print "Traces shape: ", z.shape
+    print ("Traces shape: ", z.shape)
     np.save(file_name[:-4]+"_traces", z)
 
 def nb_view_patches(file_name, Yr, A, C, b, f, d1, d2, YrA = None, image_neurons=None, thr=0.99, denoised_color=None, cmap='viridis'):
@@ -1169,7 +1168,7 @@ def nb_view_patches(file_name, Yr, A, C, b, f, d1, d2, YrA = None, image_neurons
 
     x = np.arange(T)
     z = old_div(np.squeeze(np.array(Y_r[:, :].T)), 100)
-    print "Traces shape: ", z.shape
+    print ("Traces shape: ", z.shape)
     np.save(file_name[:-4]+"_traces", z)
     
     
@@ -1220,8 +1219,8 @@ def nb_view_patches(file_name, Yr, A, C, b, f, d1, d2, YrA = None, image_neurons
             source.trigger('change')
         """)
         
-    print x.shape
-    print z.shape
+    print (x.shape)
+    print (z.shape)
     y_array = z.T
     t = np.arange(len(x))
     for k in range(len(y_array)):
@@ -1290,7 +1289,7 @@ def get_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, disp
 
     d1, d2 = np.shape(Cn)
     d, nr = np.shape(A)
-    print "# neurons: ", nr
+    print ("# neurons: ", nr)
     if max_number is None:
         max_number = nr
 
@@ -1313,7 +1312,7 @@ def get_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, disp
     coordinates = []
     cm = com(A, d1, d2)
     for i in range(np.minimum(nr, max_number)):
-        print i
+        print (i)
     
         pars = dict(kwargs)
         if thr_method == 'nrg':

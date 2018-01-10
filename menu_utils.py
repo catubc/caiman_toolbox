@@ -1,6 +1,5 @@
-from Tkinter import *
-import tkMessageBox
-import tkFileDialog 
+from tkinter import *
+from tkinter import filedialog as tkFileDialog
 import numpy as np
 from utils import *
 
@@ -9,7 +8,7 @@ def NewFile(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "New File!... (not implemented)"
+    print ("New File!... (not implemented)")
     return
     
     Label(root, text="First Name").grid(row=0)
@@ -21,7 +20,7 @@ def NewFile(root):
     e1.grid(row=0, column=1)
     e2.grid(row=1, column=1)
 
-    print e1.text()
+    print (e1.text())
 
 
 def Defaults(root):
@@ -30,9 +29,9 @@ def Defaults(root):
 
     #******** Select CaImAn folder
     def button00():
-        print "...selecting caiman folder location..."
+        print ("...selecting caiman folder location...")
         root.caiman_folder = tkFileDialog.askdirectory(initialdir=root.caiman_folder, title="Select CaImAn Root Directory")
-        print "Changing caiman_folder to: ", root.caiman_folder
+        print ("Changing caiman_folder to: ", root.caiman_folder)
         np.savetxt('caiman_folder_location.txt',[root.caiman_folder], fmt="%s") 
         e0.delete(0, END)
         e0.insert(0, root.caiman_folder)
@@ -48,7 +47,7 @@ def Defaults(root):
 
     #******** Filename Selector
     def button0():
-        print "...selecting data folder..."
+        print ("...selecting data folder...")
         root.data_folder = tkFileDialog.askdirectory(initialdir=root.data_folder, title="Select data directory")
         np.savetxt('data_folder_location.txt',[root.data_folder], fmt="%s") 
         e.delete(0, END)
@@ -68,7 +67,7 @@ def Tif_convert(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "Converting tif to .npy"
+    print ("Converting tif to .npy")
 
     root.minsize(width=800, height=500)
     root.data = emptyObject()
@@ -77,7 +76,7 @@ def Tif_convert(root):
 
     #******** Select filename:
     def button0():
-        print "...selecting file..."
+        print ("...selecting file...")
         #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
 
@@ -95,10 +94,10 @@ def Tif_convert(root):
     e1.place(x=120,width=800)
    
     def button1():
-        print "...converting: ", root.data.file_name
+        print ("...converting: ", root.data.file_name)
         convert_tif_npy(root.data.file_name)
         #os.system("python ../CaImAn/demo_OnACID.py "+root.data.file_name)
-        print "... done!"
+        print ("... done!")
         
     #******** Run review ROIs function
     b1 = Button(root, text="convert tif->npy", command=button1)
@@ -109,7 +108,7 @@ def Crop_rectangle(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "Croping image"
+    print ("Croping image")
 
     root.minsize(width=800, height=500)
     root.data = emptyObject()
@@ -118,7 +117,7 @@ def Crop_rectangle(root):
 
     #******** Select filename:
     def button0():
-        print "...selecting file..."
+        print ("...selecting file...")
         #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
 
@@ -136,17 +135,17 @@ def Crop_rectangle(root):
     e1.place(x=120,width=800)
    
     def button1():
-        print "...croping: ", root.data.file_name
+        print ("...croping: ", root.data.file_name)
         crop_image(root.data.file_name)
         #os.system("python ../CaImAn/demo_OnACID.py "+root.data.file_name)
-        print "... done!"
+        print ("... done!")
         
     #******** Run review ROIs function
     b1 = Button(root, text="Crop tif (or .npy)", command=button1)
     b1.grid(row=1, column=0)
 
 def Crop_arbitrary(root):
-    print "... arbitrary crop not yet implemented ..."
+    print ("... arbitrary crop not yet implemented ...")
 
 def Caiman_online(root):
     for k, ele in enumerate(root.winfo_children()):
@@ -163,10 +162,10 @@ def Caiman_online(root):
 
     #******** Filename Selector
     def button0():
-        print "...selecting file..."
+        print ("...selecting file...")
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("npy", "*.npy"),("All Files", "*.*") ))
 
-        print root.data.file_name
+        print (root.data.file_name)
         root.data_folder = os.path.split(root.data.file_name)[0]
         np.savetxt('data_folder_location.txt',[root.data_folder], fmt="%s") 
         e.delete(0, END)
@@ -259,7 +258,7 @@ def Caiman_online(root):
     #Recording Defaults
     #NEW LINE 
     x_offset = 0; y_offset+=50
-    print x_offset, y_offset
+    print (x_offset, y_offset)
     l_1 = Label(root, text='Recording Defaults',  fg="blue", justify='left')
     l_1.place(x=x_offset, y=y_offset, height=30, width=120)
     
@@ -349,7 +348,7 @@ def Caiman_online(root):
     #Temporary Initalization Defaults
     #NEW LINE 
     x_offset = 0; y_offset+=50
-    print x_offset, y_offset
+    print (x_offset, y_offset)
     l_1 = Label(root, text='Initialization Defaults',  fg="green", justify='left')
     l_1.place(x=x_offset, y=y_offset, height=30, width=140)
     
@@ -447,8 +446,8 @@ def Caiman_online(root):
             total_len_file=e18.get(),     # total len of file
             caiman_location = str(root.caiman_folder)
             )
-        print type(str(root.caiman_folder))
-        print type(root.caiman_folder)
+        print (type(str(root.caiman_folder)))
+        print (type(root.caiman_folder))
                 
         if tkinter_window:
             import io, subprocess
@@ -465,10 +464,10 @@ def Caiman_online(root):
               else:
                 break
         else:
-            print "python -u "
-            print root.caiman_folder
+            print ("python -u ")
+            print (root.caiman_folder)
             #p = os.system("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+root.data.file_name)
-            print "python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+str(root.data.file_name)
+            print ("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+str(root.data.file_name))
             p = os.system("python -u "+str(root.caiman_folder)+"/demo_OnACID_2.py "+str(root.data.file_name))
         
     l = Label(root, textvariable='green', fg = 'red')
@@ -480,8 +479,8 @@ def Caiman_offline(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "...caiman offline...(not implemented)"
-    print "...Note: caiman online is currently running in caiman offline mode... "
+    print ("...caiman offline...(not implemented)")
+    print ("...Note: caiman online is currently running in caiman offline mode... ")
 
 
 def Image_registration(root):
@@ -489,7 +488,7 @@ def Image_registration(root):
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
-    print "... image registration..."
+    print ("... image registration...")
     
 
     root.minsize(width=800, height=500)
@@ -498,7 +497,7 @@ def Image_registration(root):
 
     #******** Select filename:
     def button0():
-        print "...selecting file..."
+        print ("...selecting file...")
         #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
 
@@ -516,7 +515,7 @@ def Image_registration(root):
     e1.place(x=120,width=800)
    
     def button1():
-        print "...motion correcting: ", root.data.file_name
+        print ("...motion correcting: ", root.data.file_name)
         motion_correct_caiman(root)
         
     #******** Run review ROIs function
@@ -531,7 +530,7 @@ class emptyObject():
 
         
 def Review_ROIs(root):
-    print "...Review ROIs ..."
+    print ("...Review ROIs ...")
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
     
@@ -566,7 +565,7 @@ def Review_ROIs(root):
 
     #******** Select filename:
     def button0():
-        print "...selecting file..."
+        print ("...selecting file...")
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="*processed.npz", filetypes=(("npz", "*processed.npz"),("All Files", "*.*") ))
 
         e1.delete(0, END)
@@ -587,7 +586,7 @@ def Review_ROIs(root):
             
     #******** Correct ROIs
     def button1():
-        print "... running correct ROIs..."
+        print ("... running correct ROIs...")
         correct_ROIs(root.data.file_name, root.data.A, root.data.Cn, thr=0.95)
 
     b1 = Button(root, text="Review ROIs", command=button1, justify='left')
@@ -597,11 +596,11 @@ def Review_ROIs(root):
     #************NOT IMPLEMENTED
     if False:
         def button2():
-            print "...plotting contours..."
+            print ("...plotting contours...")
             plot_contours(root.data.A, root.data.Cn, thr=0.9)
 
         def button3():
-            print "... view patches ..."
+            print ("... view patches ...")
             nb_view_patches(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
                 image_neurons=root.data.Cn, denoised_color='red')
         
@@ -617,7 +616,7 @@ def Review_ROIs(root):
 
 
 def Review_spikes(root):
-    print "...Review spikes ..."
+    print ("...Review spikes ...")
     for k, ele in enumerate(root.winfo_children()):
         if k>0: ele.destroy()
 
@@ -627,7 +626,7 @@ def Review_spikes(root):
 
     #******** Select ROI filename
     def button0():
-        print "...selecting ROI file..."
+        print ("...selecting ROI file...")
         root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="ROIs.npz", filetypes=(("ROI", "*ROIs.npz"),("All Files", "*.*") ))
         e1.delete(0, END)
         e1.insert(0, root.data.file_name)
@@ -656,7 +655,7 @@ def Review_spikes(root):
     e2.place(x=x_offset,y=y_offset)
     
     def button1():
-        print "...running foopsi..."
+        print ("...running foopsi...")
         root.data.foopsi_threshold = e2.get()
         run_foopsi(root)
 
@@ -667,7 +666,7 @@ def Review_spikes(root):
 
     #********* View rasters
     def button2():
-        print "...viewing rasters..."
+        print ("...viewing rasters...")
         root.data.foopsi_threshold = e2.get()
         view_rasters(root)
     
@@ -678,7 +677,7 @@ def Review_spikes(root):
 
     #********* View single neuron
     def button2():
-        print "...viewing trace..."
+        print ("...viewing trace...")
         root.data.foopsi_threshold = e2.get()
         root.data.neuron_id = int(e3.get())
         view_neuron(root)

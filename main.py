@@ -1,4 +1,4 @@
-from Tkinter import *
+from tkinter import *
 import os
 import bokeh 
 
@@ -20,10 +20,10 @@ logo = PhotoImage(file="caiman.gif")
 w1 = Label(root, image=logo).pack(side='top')
 
 root.caiman_folder = np.loadtxt('caiman_folder_location.txt',dtype=str)
-print "Location of CaImAn folder: ", root.caiman_folder
+print ("Location of CaImAn folder: ", root.caiman_folder)
 
 root.data_folder = np.loadtxt('data_folder_location.txt',dtype=str)
-print "Location of data folder: ", root.data_folder
+print ("Location of data folder: ", root.data_folder)
 
 #************************************************************
 #************************ FILE MENU *************************
