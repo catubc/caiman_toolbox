@@ -1,6 +1,7 @@
 from tkinter import *
 import os
-import bokeh 
+import bokeh
+from shutil import copyfile
 
 from menu_utils import  *
     
@@ -25,6 +26,12 @@ print ("Location of CaImAn folder: ", root.caiman_folder)
 root.data_folder = np.loadtxt('data_folder_location.txt',dtype=str)
 print ("Location of data folder: ", root.data_folder)
 
+
+if os.path.exists(str(root.caiman_folder)+'/demo_OnACID_2.py'):
+	pass
+else:
+	print ("Copying demo_OnACID_2.py file to root caiman_folder")
+	copyfile('demo_OnACID_2.py', str(root.caiman_folder)+'/demo_OnACID_2.py')
 #************************************************************
 #************************ FILE MENU *************************
 #************************************************************
