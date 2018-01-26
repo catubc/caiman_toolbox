@@ -61,7 +61,44 @@ def Defaults(root):
     e.delete(0, END)
     e.insert(0, root.data_folder)
     e.place(x=150,y=30, width=600)
+
+def Tif_merge(root):
+    for k, ele in enumerate(root.winfo_children()):
+        if k>0: ele.destroy()
+
+    print ("Merging tifs from list of filenames")
+
+    root.minsize(width=800, height=500)
+    root.data = emptyObject()
+
+    #******** Select filename:
+    def button0():
+        print ("...selecting .txt containing list of .tif files...")
+        #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".txt", filetypes=(("txt", "*.txt"),("All Files", "*.*") ))
+
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        #root.title(os.path.split(root.data.file_name)[1])
+        
+    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0,column=0)
     
+    e1 = Entry(root, justify='left')       #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, '')
+    e1.grid(row=0, column=1)
+    e1.place(x=120,width=800)
+    
+    def button1():
+        print ("...merging files from list: ", root.data.file_name)
+        merge_tifs(root.data.file_name)
+        #os.system("python ../CaImAn/demo_OnACID.py "+root.data.file_name)
+        print ("... done!")
+        
+    #******** Run review ROIs function
+    b1 = Button(root, text="merge tifs", command=button1)
+    b1.grid(row=1, column=0)
     
 def Tif_convert(root):
     for k, ele in enumerate(root.winfo_children()):
@@ -103,6 +140,49 @@ def Tif_convert(root):
     b1 = Button(root, text="convert tif->npy", command=button1)
     b1.grid(row=1, column=0)
 
+def Tif_sequence_load(root):
+    for k, ele in enumerate(root.winfo_children()):
+        if k>0: ele.destroy()
+
+    print ("Loading .tif sequence")
+    
+    print ("... buggy... not yet fixed...(tiffilfe seems to give errors...)")
+    return
+
+    root.minsize(width=1200, height=500)
+    root.data = emptyObject()
+
+    #******** Select filename:
+    def button0():
+        print ("...selecting file...")
+        #root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data.root_dir)
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension=".tif", filetypes=(("tif", "*.tif"),("All Files", "*.*") ))
+
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        #root.title(os.path.split(root.data.file_name)[1])
+        
+    b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0,column=0)
+    
+    e1 = Entry(root, justify='left')       #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, '')
+    e1.grid(row=0, column=1)
+    e1.place(x=120,width=1200)
+   
+    def button1():
+	print e1.get()
+	root.data.file_name = e1.get()
+
+        print ("...loading: ", root.data.file_name)
+        load_tif_sequence(e1.get())
+
+        print ("... done!")
+        
+    #******** Run review ROIs function
+    b1 = Button(root, text="Load tif sequence", command=button1)
+    b1.grid(row=1, column=0)
 
 def Crop_rectangle(root):
     for k, ele in enumerate(root.winfo_children()):

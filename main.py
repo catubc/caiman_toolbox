@@ -21,17 +21,21 @@ logo = PhotoImage(file="caiman.gif")
 w1 = Label(root, image=logo).pack(side='top')
 
 root.caiman_folder = np.loadtxt('caiman_folder_location.txt',dtype=str)
-print ("Location of CaImAn folder: ", root.caiman_folder)
+print ("Location of CaImAn folder: ", str(root.caiman_folder))
 
 root.data_folder = np.loadtxt('data_folder_location.txt',dtype=str)
-print ("Location of data folder: ", root.data_folder)
+print ("Location of data folder: ", str(root.data_folder))
 
 
+#Copying demo_OnACID_2 file to correct location
 if os.path.exists(str(root.caiman_folder)+'/demo_OnACID_2.py'):
-	pass
+    pass
 else:
-	print ("Copying demo_OnACID_2.py file to root caiman_folder")
-	copyfile('demo_OnACID_2.py', str(root.caiman_folder)+'/demo_OnACID_2.py')
+    print ("Copying demo_OnACID_2.py file to root caiman_folder")
+    try:
+        copyfile('demo_OnACID_2.py', str(root.caiman_folder)+'/demo_OnACID_2.py')
+    except:
+        print ("... incorrect file location..")
 #************************************************************
 #************************ FILE MENU *************************
 #************************************************************
@@ -49,6 +53,8 @@ preprocessmenu = Menu(menu)
 menu.add_cascade(label="Pre-Process", menu=preprocessmenu)
 preprocessmenu.add_command(label="Image Registration", command=lambda: Image_registration(root))
 preprocessmenu.add_command(label="Convert .tif -> .npy", command=lambda: Tif_convert(root))
+preprocessmenu.add_command(label="Merge .tifs", command=lambda: Tif_merge(root))
+preprocessmenu.add_command(label="Load .tif sequence", command=lambda: Tif_sequence_load(root))
 preprocessmenu.add_command(label="Rectangle Crop Image", command=lambda: Crop_rectangle(root))
 preprocessmenu.add_command(label="Arbitrary Crop Image (not implemented)", command=lambda: Crop_arbitrary(root))
 

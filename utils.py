@@ -8,6 +8,7 @@ import tifffile as tiff
 import os, sys
 import matplotlib.gridspec as gridspec
 import scipy.io as sio
+import matplotlib.patches as mpatches
 
 try:
     import bokeh
@@ -133,6 +134,16 @@ def view_neuron(root):
     plt.ylabel("DF/F", fontsize=20)
     ax.tick_params(axis='both', which='both', labelsize=20)
     
+    #Legend
+    blue_patch = mpatches.Patch(color='blue')
+    orange_patch = mpatches.Patch(color='orange')
+    green_patch = mpatches.Patch(color='green')
+
+    labels = ['Raw', 'Deconvolved', 'Foopsi']
+
+    ax.legend([blue_patch, orange_patch, green_patch], labels, fontsize=12, loc=0, 
+		title="")
+    
     plt.show()
     
 def convert_tif_npy(file_name):
@@ -141,6 +152,40 @@ def convert_tif_npy(file_name):
 
     tiff.imsave(file_name[:-4]+"_500frames.tif", images[:500])
     np.save(file_name[:-4]+"_500frames.npy", images[:500])
+
+def merge_tifs(file_name):
+    print ("...merging tifs ...")
+    filenames = np.loadtxt(file_name, dtype='str')
+    
+    img_array = []
+    for filename in filenames:
+	data_temp = tiff.imread(filename)
+	print ("...loading: ", filename, " size: ", data_temp.shape)
+	img_array.append(data_temp)
+    
+    img_array = np.vstack(img_array)
+    print img_array.shape
+    print ("...saving tiffs...")
+    tiff.imsave(os.path.split(filename)[0]+"/all.tif", img_array)
+    np.save(os.path.split(filename)[0]+'/all.npy', img_array)
+    print ("...done saving tiffs/npy...")
+
+def load_tif_sequence(file_name):
+    import glob
+        
+    filenames = sorted(glob.glob(file_name))
+    print ("... # files: ", len(filenames))
+
+    print ("... loading tiffs...")
+    image_array = []
+    for filename in filenames:
+	image_array.append(tiff.imread(filename))
+    image_array = np.array(image_array)
+    np.save(file_name[:-1]+"_all.npy", image_array)
+
+    tiff.imsave(file_name[:-1]+"_all.tif", image_array)
+    #np.save(file_name[:-4]+"_500frames.npy", images[:500])
+
 
 
 def crop_image(file_name):
@@ -208,18 +253,25 @@ def motion_correct_caiman(root):
     splits_els = 30             # for parallelization split the movies in  num_splits chuncks across time
     upsample_factor_grid = 4    # upsample factor to avoid smearing when merging patches
     max_deviation_rigid = 3     # maximum deviation allowed for patch with respect to rigid shifts
-        
+    
     
     #%% start a cluster for parallel processing
     caiman_path = np.loadtxt('caiman_folder_location.txt', dtype=str)       #<------------ is this necessary still?
     sys.path.append(str(caiman_path)+'/')
     print (caiman_path)
-	
+
     import caiman as cm
     c, dview, n_processes = cm.cluster.setup_cluster(backend='local', n_processes=None, single_thread=False)
 
     #min_mov = cm.load(fname, subindices=range(200)).min() 
-    all_mov = tiff.imread(fname)
+    if 'tif' in fname:
+	all_mov = tiff.imread(fname)
+	print all_mov.shape
+    else:
+	all_mov = np.load(fname)
+	print all_mov.shape
+
+    #return
     min_mov = all_mov.min()
     
     # this will be subtracted from the movie to make it non-negative 
@@ -253,6 +305,9 @@ def motion_correct_caiman(root):
         reg_mov[k] = np.roll(np.roll(all_mov[k], int(mc.shifts_rig[k][0]), axis=0), int(mc.shifts_rig[k][1]), axis=1)
     
     tiff.imsave(fname[:-4]+"_registered.tif", reg_mov)
+    np.save(fname[:-4]+"_registered.npy", reg_mov)
+    import imageio
+    imageio.mimwrite(fname[:-4]+"_registered_fps10.mp4", reg_mov, fps = 10)
 
     plt.title("new_template", fontsize=20)
     plt.imshow(new_templ, cmap='gray')
