@@ -172,8 +172,8 @@ def Tif_sequence_load(root):
     e1.place(x=120,width=1200)
    
     def button1():
-	print e1.get()
-	root.data.file_name = e1.get()
+        print (e1.get())
+        root.data.file_name = e1.get()
 
         print ("...loading: ", root.data.file_name)
         load_tif_sequence(e1.get())
@@ -619,21 +619,27 @@ def Review_ROIs(root):
     root.title("Review and Cleanup ROIs")
 
     def load_data():
-        data_in = np.load(root.data.file_name)
-        
+        print ("...loading processed file: ", root.data.file_name)
         #Update filename box
         e1.delete(0, END)
         e1.insert(0, root.data.file_name)
 
-        root.data.Yr = data_in['Yr']
-        #print Yr.shape
-
-        root.data.YrA = data_in['YrA']
-        #print YrA.shape
+        #Load data
+        data_in = np.load(root.data.file_name, encoding= 'latin1',  mmap_mode='c')
+        
+        print (data_in.keys())
 
         A = data_in['A']        #Convert array from sparse to dense
+        print (A.shape)
+        #print (A[()].shape)
         root.data.A = A[()].toarray()
-        #print A.shape
+        #print (root.data.A.shape)
+
+        root.data.Yr = data_in['Yr']
+        print (root.data.Yr.shape)
+
+        root.data.YrA = data_in['YrA']
+        print (root.data.YrA.shape)
 
         root.data.C = data_in['C']
         root.data.b = data_in['b']
@@ -674,24 +680,24 @@ def Review_ROIs(root):
 
 
     #************NOT IMPLEMENTED
-    if False:
-        def button2():
-            print ("...plotting contours...")
-            plot_contours(root.data.A, root.data.Cn, thr=0.9)
+    #if False:
+        #def button2():
+            #print ("...plotting contours...")
+            #plot_contours(root.data.A, root.data.Cn, thr=0.9)
 
-        def button3():
-            print ("... view patches ...")
-            nb_view_patches(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
-                image_neurons=root.data.Cn, denoised_color='red')
+        #def button3():
+            #print ("... view patches ...")
+            #nb_view_patches(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
+                #image_neurons=root.data.Cn, denoised_color='red')
         
 
-        #******** Run review ROIs function
-        b2 = Button(root, text="Plot contours", command=button2, justify='left')
-        b2.place(x=0, y=80)
+        ##******** Run review ROIs function
+        #b2 = Button(root, text="Plot contours", command=button2, justify='left')
+        #b2.place(x=0, y=80)
 
-        #******** Run review ROIs function
-        b3 = Button(root, text="View patches", command=button3, justify='left')
-        b3.place(x=0, y=110)
+        ##******** Run review ROIs function
+        #b3 = Button(root, text="View patches", command=button3, justify='left')
+        #b3.place(x=0, y=110)
 
 
 

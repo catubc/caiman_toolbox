@@ -159,12 +159,12 @@ def merge_tifs(file_name):
     
     img_array = []
     for filename in filenames:
-	data_temp = tiff.imread(filename)
-	print ("...loading: ", filename, " size: ", data_temp.shape)
-	img_array.append(data_temp)
+        data_temp = tiff.imread(filename)
+        print ("...loading: ", filename, " size: ", data_temp.shape)
+        img_array.append(data_temp)
     
     img_array = np.vstack(img_array)
-    print img_array.shape
+    print (img_array.shape)
     print ("...saving tiffs...")
     tiff.imsave(os.path.split(filename)[0]+"/all.tif", img_array)
     np.save(os.path.split(filename)[0]+'/all.npy', img_array)
@@ -179,7 +179,8 @@ def load_tif_sequence(file_name):
     print ("... loading tiffs...")
     image_array = []
     for filename in filenames:
-	image_array.append(tiff.imread(filename))
+        image_array.append(tiff.imread(filename))
+    
     image_array = np.array(image_array)
     np.save(file_name[:-1]+"_all.npy", image_array)
 
@@ -265,11 +266,10 @@ def motion_correct_caiman(root):
 
     #min_mov = cm.load(fname, subindices=range(200)).min() 
     if 'tif' in fname:
-	all_mov = tiff.imread(fname)
-	print all_mov.shape
+        all_mov = tiff.imread(fname)
     else:
-	all_mov = np.load(fname)
-	print all_mov.shape
+        all_mov = np.load(fname)
+    print (all_mov.shape)
 
     #return
     min_mov = all_mov.min()
@@ -306,8 +306,8 @@ def motion_correct_caiman(root):
     
     tiff.imsave(fname[:-4]+"_registered.tif", reg_mov)
     np.save(fname[:-4]+"_registered.npy", reg_mov)
-    import imageio
-    imageio.mimwrite(fname[:-4]+"_registered_fps10.mp4", reg_mov, fps = 10)
+    #import imageio
+    #imageio.mimwrite(fname[:-4]+"_registered_fps10.mp4", reg_mov, fps = 10)
 
     plt.title("new_template", fontsize=20)
     plt.imshow(new_templ, cmap='gray')
