@@ -78,8 +78,8 @@ reviewmenu.add_command(label="Review Spikes", command=lambda: Review_spikes(root
 
 #******** ANALYSIS MENU *************
 analysismenu = Menu(menu)
-menu.add_cascade(label="Analysis", menu=analysismenu)
-analysismenu.add_command(label="Ensemble Detection", command=lambda: Ensemble_detection(root))
+menu.add_cascade(label="Ensemble Analysis", menu=analysismenu)
+analysismenu.add_command(label="Louvain Modularity", command=lambda: Louvain_modularity(root))
 
 
 mainloop()

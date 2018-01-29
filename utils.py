@@ -28,6 +28,8 @@ def run_foopsi(root):
     
     print (len(traces))
     
+    lengths_filename = os.path.split(root.data.file_name)[0]+'/all_lengths.txt'
+    lengths = np.loadtxt(lengths_filename,dtype=np.int32)
     #lengths = [3000,3500,3500,3000,3000,3000]
     #import imp
     #cm = imp.load_source('caiman', '/home/cat/code/CaImAn/')
@@ -40,29 +42,39 @@ def run_foopsi(root):
     
     c_array = []
     foopsi_traces = []
-    for n, trace in enumerate(traces):
-    #for n, trace in enumerate(traces[:10]):
-        print (" ... cell: ", n)
-        #trace+=20
-        temp_c = []
-        temp_raster = []
-        
-        if True:                               
+    if False: 									#Run deconvolution on entire trace for each neuron
+        for n, trace in enumerate(traces):
+            print (" ... cell: ", n)
+            temp_c = []
+            temp_raster = []
             #c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace,method = 'cvxpy', p=1)
             c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace, p=1)
             temp_c.extend(c)
             temp_raster.extend(sp)    
-        
-        #This runs deconvolution chunkwise and setsbaseline based on mean of the input traces - to account for differences in light intensity across frames...
-        else:                                   
-            for l in range(len(lengths)):
-                print (np.sum(lengths[0:l]), np.sum(lengths[0:l+1]))
-                c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace[np.sum(lengths[0:l]):np.sum(lengths[0:l+1])]+abs(np.mean(trace)),p=2)
+
+            c_array.append(temp_c)
+            foopsi_traces.append(temp_raster)
+
+    else:         #This runs deconvolution chunkwise and setsbaseline based on mean of the input traces - to account for differences in light intensity across frames...
+        for n, trace in enumerate(traces):
+            print (" ... cell (chunks): ", n)
+            temp_c = []
+            temp_raster = []
+            for l in range(len(lengths)): #loop over all lengths of recording
+                #print (np.sum(lengths[0:l]), np.sum(lengths[0:l+1]))
+                trace_chunk = trace[np.sum(lengths[0:l]):np.sum(lengths[0:l+1])]
+                #plt.plot(trace_chunk)
+                trace_chunk = trace_chunk + abs(np.mean(trace_chunk))
+                #plt.plot(trace_chunk)
+                #plt.show(block=True)
+                c, bl, c1, g, sn, sp, lam = constrained_foopsi(trace_chunk,p=1)
+
                 temp_c.extend(c)
                 temp_raster.extend(sp)
 
-        c_array.append(temp_c)
-        foopsi_traces.append(temp_raster)
+            c_array.append(temp_c)
+            foopsi_traces.append(temp_raster)
+
 
     foopsi_traces = np.array(foopsi_traces)
     c_array=np.array(c_array)
@@ -80,25 +92,56 @@ def run_foopsi(root):
 
 def view_rasters(root):
     print ("...View rasters ...")
-    
+    colors=['blue','red', 'green', 'violet','lightseagreen','lightsalmon','dodgerblue','mediumvioletred','indianred','lightsalmon','pink','darkolivegreen']
+
     root.deconvolved_filename = root.data.file_name[:-4]+"_deconvolved_data_thr"+str(root.data.foopsi_threshold)+".npz"
     data = np.load(root.deconvolved_filename)
     rasters = data['rasters']
     traces = data['original_traces']
     print (rasters.shape)
 
+    #Load filenames and lengths
+    all_names = np.loadtxt(os.path.split(root.data.file_name)[0]+'/all_names.txt', dtype='str')
+    all_lengths = np.loadtxt(os.path.split(root.data.file_name)[0]+'/all_lengths.txt')
+    
     ax=plt.subplot(1,1,1)
+    ofset=0
     for k in range(len(rasters)):
-        #print len(rasters[k])
-        #indexes = np.where(rasters[k]>0)[0]
-        plt.scatter(rasters[k], [k]*len(rasters[k]))
+        ymin=np.zeros(len(rasters[k]))+k
+        ymax=np.zeros(len(rasters[k]))+k+0.8
+        plt.vlines(rasters[k], ymin, ymax, linewidth=1, colors=colors[k%12], alpha=1) #colors[mod(counter,7)])    
+        #plt.vlines(rasters[k], ymin, ymax, linewidth=1, colors='blue', alpha=1) #colors[mod(counter,7)])    
+    
+    ctr=0
+    ctr_sum = []
+    #Shade each recording block
+    for k in range(0,len(all_lengths),2):
+        print (all_lengths[k])
+        #ax.axvspan(ctr, ctr+all_lengths[k+1], ymin=0, ymax=200, alpha=0.03, color='black')
+        ax.axvspan(ctr, ctr+10, ymin=0, ymax=200, alpha=1, color='black')
+        ctr+=all_lengths[k]
+        ax.axvspan(ctr, ctr+10, ymin=0, ymax=200, alpha=1, color='black')
+        ctr_sum.append(ctr)
+        ctr+=all_lengths[k+1]
+        ctr_sum.append(ctr)
+        
     
     plt.xlim(-1,len(traces[0])+1)
     plt.ylim(-1,len(rasters)+1)
     plt.xlabel("Frames", fontsize=25)
     plt.ylabel("Neuron ID", fontsize=25)
     ax.tick_params(axis='both', which='both', labelsize=25)
-    plt.title(root.deconvolved_filename+"\nFoopsi threshold: "+str(root.data.foopsi_threshold), fontsize=15)
+    #ax.set_xticklabels(np.array(ctr_sum)-ctr_sum[0], all_names, rotation=17, fontsize=6)
+    plt.xticks(np.array(ctr_sum)-ctr_sum[0], all_names, rotation=17, fontsize=6)
+    
+    #ax2 = ax.twiny()
+    #plt.xticks(all_names,rotation=17, fontsize=6)
+
+    print (ctr_sum)
+    print (all_names)
+    #plt.yticks(np.int16(range(0,21*output.scale,output.scale))+output.scale/2, all_names)
+
+    plt.suptitle(root.deconvolved_filename+" (Foopsi threshold: "+str(root.data.foopsi_threshold)+")", fontsize=15)
     plt.show()
 
 
@@ -142,7 +185,7 @@ def view_neuron(root):
     labels = ['Raw', 'Deconvolved', 'Foopsi']
 
     ax.legend([blue_patch, orange_patch, green_patch], labels, fontsize=12, loc=0, 
-		title="")
+        title="")
     
     plt.show()
     
@@ -154,20 +197,32 @@ def convert_tif_npy(file_name):
     np.save(file_name[:-4]+"_500frames.npy", images[:500])
 
 def merge_tifs(file_name):
+    ''' Merge tifs; 
+        Important to also save names of files for later loading and size of each chunk in frames
+    '''
+    
     print ("...merging tifs ...")
     filenames = np.loadtxt(file_name, dtype='str')
     
     img_array = []
+    names = []
+    lengths = []
     for filename in filenames:
         data_temp = tiff.imread(filename)
         print ("...loading: ", filename, " size: ", data_temp.shape)
+        lengths.append(len(data_temp))
+        names.append(os.path.split(filename)[1])
         img_array.append(data_temp)
     
     img_array = np.vstack(img_array)
     print (img_array.shape)
-    print ("...saving tiffs...")
-    tiff.imsave(os.path.split(filename)[0]+"/all.tif", img_array)
-    np.save(os.path.split(filename)[0]+'/all.npy', img_array)
+    print ("...saving tif...")
+    tiff.imsave(file_name[:-4]+'_all.tif', img_array)
+    print ("...saving npy version...")
+    np.save(file_name[:-4]+'_all.npy', img_array)
+    np.save(file_name[:-4]+'_all_names.npy', names)
+    np.save(file_name[:-4]+'_all_lengths.npy', lengths)
+
     print ("...done saving tiffs/npy...")
 
 def load_tif_sequence(file_name):
@@ -314,11 +369,174 @@ def motion_correct_caiman(root):
     plt.show()
     
 
-def Ensemble_detection(root):
-    print ("...Ensemble detection ... (not implemented)")
+def louvain_compute(root):
+    print ("...Louvain modularity computation")
+    
+    import community
+    import networkx as nx
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import os
+
+    def corr2_coeff(A,B):
+        # Rowwise mean of input arrays & subtract from input arrays themeselves
+        A_mA = A - A.mean(1)[:,None]
+        B_mB = B - B.mean(1)[:,None]
+
+        # Sum of squares across rows
+        ssA = (A_mA**2).sum(1);
+        ssB = (B_mB**2).sum(1);
+
+        # Finally get corr coeff
+        return np.dot(A_mA,B_mB.T)/np.sqrt(np.dot(ssA[:,None],ssB[None]))
+        
+    #Load original data
+    file_name = root.data.file_name
+    data = np.load(file_name)
+    rasters = data['rasters']
+    traces = data['original_traces']
+    print (rasters.shape)
+    print (rasters[0])
+
+    #Load filenames and lengths
+    all_names = np.loadtxt(os.path.split(file_name)[0]+'/all_names.txt', dtype='str')
+    all_lengths = np.loadtxt(os.path.split(file_name)[0]+'/all_lengths.txt')
+    print (all_lengths)
+    cumulative_lengths = []
+    ctr=0
+    cumulative_lengths.append(ctr)
+    for length in all_lengths:
+        ctr+=length; cumulative_lengths.append(ctr)
+        
+    print (rasters[0])
+    cumulative_lengths = np.int32(cumulative_lengths)
+    print (cumulative_lengths)
+
+    #Convert rasters into milisecond precise time serios
+    rasters_binarized = np.zeros((len(rasters),int(np.sum(all_lengths))),dtype=np.int8)
+    for k in range(len(rasters)):
+        rasters_binarized[k][np.int32(rasters[k])]=1
+
+    print (rasters_binarized)
+
+    #Compute session wise correlation matrices
+    from scipy import stats
+    corr_arrays = []
+    for s in range(len(cumulative_lengths)-1):
+        ind1 = cumulative_lengths[s]
+        ind2 = cumulative_lengths[s+1]
+        print (ind1, ind2)
+        #for k in range(len(rasters_binarized)):
+        #    corr_array.append([])
+        #    for p in range(k,len(rasters_binarized),1):
+        #        corr_array[k].append(stats.pearsonr(rasters_binarized[k][ind1:ind2], rasters_binarized[p][ind1:ind2]))
+
+        #print rasters_binarized[:,ind1:ind2].shape
+        #img = np.corrcoef(rasters_binarized[:,ind1:ind2], rasters_binarized[:,ind1:ind2])
+        corr_arrays.append(corr2_coeff(rasters_binarized[:,ind1:ind2], rasters_binarized[:,ind1:ind2]))
+
+
+    #print len(corr_array)
+
+    #Load matrix into a networkx graph
+    network_array = []
+    for corr_array in corr_arrays:
+        #G = np.random.rand(100,100)
+        G = corr_array-np.min(corr_array)
+        #G = G/np.max(G)/100
+        G = nx.Graph(G)
+
+        print ("...# edges: ", G.number_of_edges())
+        print ("...# nodes: ", G.number_of_nodes())
+
+        #first compute the best partition
+        partition = community.best_partition(G)
+        print (len(partition.values()))
+        #print partition.values()
+        #print partition.keys()
+        #drawing
+        size = float(len(set(partition.values())))
+        #print size
+        pos = nx.spring_layout(G)
+        count = 0.
+        colors=np.array(['red','orange','yellow','green','cyan','blue','indigo','violet'])[::-1]
+        plotting = False
+        list_nodes_array = []
+        for com in set(partition.values()) :
+        #for com in [6,7,8]:
+            #count = count + 1.
+            count = com
+            list_nodes = [nodes for nodes in partition.keys()
+                                        if partition[nodes] == com]
+            print (com, len(list_nodes))
+            list_nodes_array.append(list_nodes)
+            if plotting:
+                nx.draw_networkx_nodes(G, pos, list_nodes, node_size = 25+ np.exp(com),     #com/float(size)*1000,
+                                        node_color = 'blue',alpha=.5)
+
+        print (list_nodes_array)
+        if plotting:
+            nx.draw_networkx_edges(G, pos, alpha=0.25)
+            plt.show()
+        network_array.append(list_nodes_array)
+
+    np.save(file_name[:-4]+"_networks", network_array)
+
+def visualize_louvain(root):
+    
+    print ("...loading processed file: ", root.data.file_name)
+
+    #Load ROI countour data first
+    index = root.data.file_name.find("processed_ROIs")
+    ROI_fname = root.data.file_name[:index+14]+".npz"
+    data_in = np.load(ROI_fname, encoding= 'latin1',  mmap_mode='c')
+
+    Bmat_array = data_in['Bmat_array']
+    cm = data_in['cm']                      #Centre of mass    
+    thr_array = data_in['thr_array']        #Threshold array original data, usually 0.2
+    traces = data_in['traces']              #
+    x_array = data_in['x_array']
+    y_array = data_in['y_array']
+    colors='b'
+
+
+    #Second, load louvain network info:
+    network_array = np.load(root.data.file_name)
+    for n in range(0,len(network_array),2):
+        print ("... epoch: ", n)
+
+        #Plot first recording
+        index_array=[]
+        for k in range(len(network_array[n])-3,len(network_array[n]),1):
+            index_array.extend(network_array[n][k])
+
+        unique_indexes=np.unique(index_array)
+        print ("...# neurons: ", len(unique_indexes))
+
+        thr_fixed=.5
+        ax=plt.subplot(1,2,1)
+        for i, (y,x,Bmat,thr) in enumerate(zip(y_array,x_array,Bmat_array,thr_array)):
+            if i in unique_indexes:
+                cs = plt.contour(y, x, Bmat, [thr_fixed], colors=colors)
+
+        #Plot second recording same day
+        index_array=[]
+        for k in range(len(network_array[n+1])-3,len(network_array[n+1]),1):
+            index_array.extend(network_array[n+1][k])
+
+        unique_indexes=np.unique(index_array)
+        print ("...# neurons: ", len(unique_indexes))
+        thr_fixed=.5
+        ax=plt.subplot(1,2,2)
+        for i, (y,x,Bmat,thr) in enumerate(zip(y_array,x_array,Bmat_array,thr_array)):
+            if i in unique_indexes:
+                cs = plt.contour(y, x, Bmat, [thr_fixed], colors=colors)
+        plt.show()
+    
 
 def About():
     tkMessageBox.showinfo("About", "CaImAn Ver 1.0 ...")
+
 
 def com(A, d1, d2):
     """Calculation of the center of mass for spatial components
@@ -491,11 +709,11 @@ def plot_contours(A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, dis
     return coordinates
     
 
-
 def PointsInCircum(r,n=100):
     import math
     from math import pi
     return [(math.cos(2*pi/n*x)*r,math.sin(2*pi/n*x)*r) for x in xrange(0,n+1)]   
+
 
 #************************* GUI TO CORRECT ROIS; USING EXISTING CAIMAN CODE *******************
 def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgthr=0.9, display_numbers=True, max_number=None,
@@ -672,7 +890,6 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
     thr_array = np.array(thr_array)
     y_array = np.array(y_array)
     x_array = np.array(x_array)
-
 
 
     #***********************************************************************************

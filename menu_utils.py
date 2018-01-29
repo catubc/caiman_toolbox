@@ -99,6 +99,76 @@ def Tif_merge(root):
     #******** Run review ROIs function
     b1 = Button(root, text="merge tifs", command=button1)
     b1.grid(row=1, column=0)
+
+
+def Louvain_modularity(root):
+    print ("...compute louvain modularity ...")
+    for k, ele in enumerate(root.winfo_children()):
+        if k>0: ele.destroy()
+    
+    root.data = emptyObject()
+    root.data.file_name = ''
+    root.title("Louvain Modularity")
+
+    #******** Select filename:
+    def button0():
+        print ("...select threshold file from foopsi output...")
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="*thr*.npz", filetypes=(("npz", "*.npz"),("All Files", "*.*") ))
+
+        e1.delete(0, END)
+        e1.insert(0, root.data.file_name)
+        root.title(os.path.split(root.data.file_name)[1])
+        
+    b0 = Button(root, text="Foopsi filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
+    b0.grid(row=0, column=0)
+
+    e1 = Entry(root)        #text entry for the filename
+    e1.delete(0, END)
+    e1.insert(0, root.data.file_name)
+    #e1.grid(row=0, column=2)
+    e1.place(x=150, y=3,width=800)
+
+            
+    #******** Correct ROIs
+    def button1():
+        #correct_ROIs(root.data.file_name, root.data.A, root.data.Cn, thr=0.95)
+        louvain_compute(root)
+
+    b1 = Button(root, text="Run Louvain", command=button1, justify='left')
+    b1.place(x=0, y=30)
+    
+    
+    #******** Select filename:
+    def button00():
+        print ("...select network file post louvain...")
+        root.data.file_name = tkFileDialog.askopenfilename(initialdir=root.data_folder, defaultextension="*network*.npy", filetypes=(("npy", "*.npy"),("All Files", "*.*") ))
+
+        e2.delete(0, END)
+        e2.insert(0, root.data.file_name)
+        root.title(os.path.split(root.data.file_name)[1])
+        
+    b00 = Button(root, text="Louvain filename: ", command=button00) #Label(root, text="Filename: ").grid(row=0)
+    #b00.grid(row=140,column=100)
+    b00.place(x=0,y=70)
+
+    e2 = Entry(root)        #text entry for the filename
+    e2.delete(0, END)
+    e2.insert(0, root.data.file_name)
+    #e2.grid(row=15, column=15)
+    e2.place(x=150, y=73,width=800)
+
+    #******** Visualize Results
+    def button2():
+        print ("...loading processed file: ", root.data.file_name)
+        visualize_louvain(root)
+
+    b2 = Button(root, text="Visualize Louvain", command=button2, justify='left')
+    b2.place(x=0, y=100)
+    
+    
+
+    pass
+    
     
 def Tif_convert(root):
     for k, ele in enumerate(root.winfo_children()):
@@ -261,11 +331,9 @@ def Caiman_online(root):
     e.place(x=110,y=4, width=600)
     
     x_offset=0; y_offset=30
-   
-   
+    
     l00 = Label(root, text='_'*200)
     l00.place(x=x_offset, y=y_offset, height=30, width=1000)
-
    
     #******** CNMF Parameters ******************
     #
@@ -570,11 +638,9 @@ def Image_registration(root):
 
     print ("... image registration...")
     
-
     root.minsize(width=800, height=500)
     root.data = emptyObject()
     
-
     #******** Select filename:
     def button0():
         print ("...selecting file...")
@@ -601,14 +667,13 @@ def Image_registration(root):
     #******** Run review ROIs function
     b1 = Button(root, text="motion correct", command=button1)
     b1.grid(row=1, column=0)
-
-
-
+    
+    
 class emptyObject():
     def __init__(self):
         pass
-
-        
+    
+    
 def Review_ROIs(root):
     print ("...Review ROIs ...")
     for k, ele in enumerate(root.winfo_children()):
@@ -630,21 +695,27 @@ def Review_ROIs(root):
         print (data_in.keys())
 
         A = data_in['A']        #Convert array from sparse to dense
-        print (A.shape)
+        #print (A.shape)
         #print (A[()].shape)
         root.data.A = A[()].toarray()
+        print (root.data.A.shape)
+        root.data.Cn = data_in['Cn']
+        print (root.data.Cn.shape)
+
+        root.data.YrA = data_in['YrA']
+        print (root.data.YrA.shape)
+        print (root.data.YrA)
+        # plt.imshow(root.data.Cn)
+        #plt.show(block=True)
+        
         #print (root.data.A.shape)
 
         root.data.Yr = data_in['Yr']
         print (root.data.Yr.shape)
 
-        root.data.YrA = data_in['YrA']
-        print (root.data.YrA.shape)
-
         root.data.C = data_in['C']
         root.data.b = data_in['b']
         root.data.f = data_in['f']
-        root.data.Cn = data_in['Cn']
 
         save_traces(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
             image_neurons=root.data.Cn, denoised_color='red')
@@ -657,7 +728,7 @@ def Review_ROIs(root):
         e1.delete(0, END)
         e1.insert(0, root.data.file_name)
         root.title(os.path.split(root.data.file_name)[1])
-        
+
         load_data()
 
     b0 = Button(root, text="Filename: ", command=button0) #Label(root, text="Filename: ").grid(row=0)
@@ -677,28 +748,6 @@ def Review_ROIs(root):
 
     b1 = Button(root, text="Review ROIs", command=button1, justify='left')
     b1.place(x=0, y=50)
-
-
-    #************NOT IMPLEMENTED
-    #if False:
-        #def button2():
-            #print ("...plotting contours...")
-            #plot_contours(root.data.A, root.data.Cn, thr=0.9)
-
-        #def button3():
-            #print ("... view patches ...")
-            #nb_view_patches(root.data.file_name, root.data.Yr, root.data.A, root.data.C, root.data.b, root.data.f, 250, 250, YrA = root.data.YrA, thr = 0.8, 
-                #image_neurons=root.data.Cn, denoised_color='red')
-        
-
-        ##******** Run review ROIs function
-        #b2 = Button(root, text="Plot contours", command=button2, justify='left')
-        #b2.place(x=0, y=80)
-
-        ##******** Run review ROIs function
-        #b3 = Button(root, text="View patches", command=button3, justify='left')
-        #b3.place(x=0, y=110)
-
 
 
 def Review_spikes(root):
