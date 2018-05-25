@@ -359,15 +359,29 @@ def motion_correct_caiman(root):
         print (int(mc.shifts_rig[k][0]), int(mc.shifts_rig[k][1]))
         reg_mov[k] = np.roll(np.roll(all_mov[k], int(mc.shifts_rig[k][0]), axis=0), int(mc.shifts_rig[k][1]), axis=1)
     
-    tiff.imsave(fname[:-4]+"_registered.tif", reg_mov)
     np.save(fname[:-4]+"_registered.npy", reg_mov)
+    
+    try:
+        from libtiff import TIFF
+        tiff_out = TIFF.open(fname[:-4]+"_registered.tif", mode='w')
+        tiff_out.write_image(reg_mov)
+        tiff_out.close()
+    except:
+        print ("Tiff too large, need to install libtiff to save to disk (only saving .npy version.")
+	
     #import imageio
     #imageio.mimwrite(fname[:-4]+"_registered_fps10.mp4", reg_mov, fps = 10)
 
+    fig1 = plt.figure()
+    ax=plt.subplot()
+    plt.title("New_template", fontsize=20)
+    ax.imshow(new_templ, cmap='gray')
+    plt.savefig(fname[:-4]+"_registered.png")
+    
     plt.title("new_template", fontsize=20)
     plt.imshow(new_templ, cmap='gray')
     plt.show()
-    
+
 
 def louvain_compute(root):
     print ("...Louvain modularity computation")
@@ -953,7 +967,7 @@ def correct_ROIs(file_name, A, Cn, thr=None, thr_method='max', maxthr=0.2, nrgth
         
         #******* Redraw movie panel
         ax.cla()
-        img1 = ax.imshow(img_data[0], cmap=color_selected, interpolation='sinc')
+        img1 = ax.imshow(img_data[0], cmap=color_selected)#, interpolation='sinc')
         for c in range(len(x_array)):
             ax.contour(y_array[c], x_array[c], Bmat_array[c], [thr_array[c]], colors=colors)
             ax.text(cm[c, 1], cm[c, 0], str(c), color=colors_white)

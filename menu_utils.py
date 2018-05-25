@@ -1,5 +1,7 @@
 from tkinter import *
 from tkinter import filedialog as tkFileDialog
+#from tkFileDialog import askopenfilename
+
 import numpy as np
 from utils import *
 
@@ -520,7 +522,7 @@ def Caiman_online(root):
     x_offset+=x_width
     e15 = Entry(root, justify='left', width=4)       #text entry for the filename
     e15.delete(0, END)
-    e15.insert(0, 250)
+    e15.insert(0, 2000)
     e15.place(x=x_offset,y=y_offset+5)
 
     #Param 
